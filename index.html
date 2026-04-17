@@ -56,7 +56,7 @@
             z-index: 10;
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
             overflow: hidden;
-            will-change: transform; /* Hint for performance */
+            will-change: transform;
         }
 
         #game-iframe {
@@ -66,25 +66,9 @@
         }
 
         /* Display Modes */
-        .mode-fit { 
-            width: 100%; 
-            height: auto; 
-            aspect-ratio: 16 / 9; 
-            object-fit: contain; 
-        }
-        
-        .mode-stretch { 
-            width: 100% !important; 
-            height: 100% !important; 
-            object-fit: fill; 
-        }
-        
-        .mode-crop { 
-            width: 100% !important; 
-            height: 100% !important; 
-            object-fit: cover;
-            transform: scale(1.1); /* Slight boost to ensure coverage */
-        }
+        .mode-fit { width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: contain; }
+        .mode-stretch { width: 100% !important; height: 100% !important; object-fit: fill; }
+        .mode-crop { width: 100% !important; height: 100% !important; object-fit: cover; transform: scale(1.1); }
 
         /* Controls Section - Exactly 40% HEIGHT */
         .controls-section {
@@ -133,10 +117,6 @@
         .z-d { bottom: 0; left: 33.5%; }
         .z-l { left: 0; top: 33.5%; }
         .z-r { right: 0; top: 33.5%; }
-        .z-ul { top: 5%; left: 5%; }
-        .z-ur { top: 5%; right: 5%; }
-        .z-dl { bottom: 5%; left: 5%; }
-        .z-dr { bottom: 5%; right: 5%; }
 
         .action-cluster {
             display: grid;
@@ -157,13 +137,7 @@
             color: white;
             font-weight: bold;
             box-shadow: 0 4px 0 #000;
-            font-size: 1.1rem;
         }
-
-        .btn-y { grid-area: y; border: 1px solid #facc1533; }
-        .btn-x { grid-area: x; border: 1px solid #60a5fa33; }
-        .btn-b { grid-area: b; border: 1px solid #f8717133; }
-        .btn-a { grid-area: a; border: 1px solid #4ade8033; }
 
         .active {
             transform: translateY(2px);
@@ -171,40 +145,16 @@
             filter: brightness(1.3);
         }
 
-        .shoulder-row {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-        }
-
+        .shoulder-row { display: flex; justify-content: space-between; width: 100%; }
         .shoulder-btn {
-            width: 32%;
-            height: 36px;
-            background: #1c1c1e;
-            border-radius: 8px;
-            border: 1px solid #3a3a3c;
-            color: #8e8e93;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
+            width: 32%; height: 36px; background: #1c1c1e; border-radius: 8px; border: 1px solid #3a3a3c;
+            color: #8e8e93; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 0.75rem;
         }
 
-        .menu-row {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-        }
+        .menu-row { display: flex; justify-content: center; gap: 30px; }
+        .menu-btn { width: 40px; height: 10px; background: #111; border-radius: 5px; border-bottom: 2px solid #444; }
 
-        .menu-btn {
-            width: 40px;
-            height: 10px;
-            background: #111;
-            border-radius: 5px;
-            border-bottom: 2px solid #444;
-        }
-
+        /* SETTINGS OVERLAY - Enable Selection/Touch */
         #settings-overlay {
             position: absolute;
             inset: 0;
@@ -215,6 +165,9 @@
             padding: 30px 24px;
             color: white;
             overflow-y: auto;
+            /* RE-ENABLE USER INTERACTION */
+            user-select: text !important;
+            touch-action: auto !important;
         }
 
         .gear-icon {
@@ -236,41 +189,38 @@
 
         .input-group { margin-bottom: 18px; }
         label { display: block; font-size: 0.7rem; text-transform: uppercase; color: #8e8e93; margin-bottom: 6px; }
-        input { background: #2c2c2e; color: white; border: 1px solid #3a3a3c; padding: 12px; border-radius: 8px; width: 100%; }
-
-        .mode-selector {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 20px;
+        
+        .url-input-container {
+            display: flex;
+            gap: 8px;
         }
 
-        .mode-option {
-            background: #2c2c2e;
-            border: 1px solid #3a3a3c;
-            padding: 10px 5px;
+        input { 
+            background: #2c2c2e; 
+            color: white; 
+            border: 1px solid #3a3a3c; 
+            padding: 12px; 
+            border-radius: 8px; 
+            width: 100%; 
+            user-select: text !important; /* Forces input selection */
+        }
+
+        .paste-btn {
+            background: #3a3a3c;
+            padding: 0 15px;
             border-radius: 8px;
-            text-align: center;
-            font-size: 0.7rem;
-            cursor: pointer;
-            color: #8e8e93;
+            color: #fff;
+            font-size: 0.8rem;
         }
 
-        .mode-option.active-mode {
-            background: #3b82f6;
-            border-color: #60a5fa;
-            color: white;
-            font-weight: bold;
+        .mode-selector { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .mode-option {
+            background: #2c2c2e; border: 1px solid #3a3a3c; padding: 10px 5px; border-radius: 8px;
+            text-align: center; font-size: 0.7rem; color: #8e8e93;
         }
+        .mode-option.active-mode { background: #3b82f6; border-color: #60a5fa; color: white; font-weight: bold; }
 
-        .info-box {
-            background: rgba(59, 130, 246, 0.1);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            padding: 12px;
-            border-radius: 10px;
-            font-size: 0.75rem;
-            color: #93c5fd;
-        }
+        .info-box { background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); padding: 12px; border-radius: 10px; font-size: 0.75rem; color: #93c5fd; }
     </style>
 </head>
 <body>
@@ -285,7 +235,12 @@
             
             <div class="input-group">
                 <label>Game Source URL</label>
-                <input type="text" id="url-input" placeholder="https://game-site.com">
+                <div class="url-input-container">
+                    <input type="text" id="url-input" placeholder="https://game-site.com" autocomplete="off">
+                    <button onclick="pasteFromClipboard()" class="paste-btn">
+                        <i class="fas fa-paste"></i>
+                    </button>
+                </div>
             </div>
 
             <div class="input-group">
@@ -304,16 +259,14 @@
 
             <div class="info-box mt-6">
                 <p class="font-bold mb-1"><i class="fas fa-bolt mr-2"></i>Performance Tip</p>
-                <p class="opacity-80">If the game feels slow, try "Apply & Restart". Some browsers throttle background iframes until interaction occurs.</p>
+                <p class="opacity-80">If the game feels slow, try "Apply & Restart". Browsers often throttle iframes until a restart or interaction.</p>
             </div>
         </div>
 
-        <!-- 60% Screen -->
         <div class="screen-section">
             <iframe id="game-iframe" src="about:blank" scrolling="no" allow="autoplay; gamepad"></iframe>
         </div>
 
-        <!-- 40% Controls -->
         <div class="controls-section">
             <div class="shoulder-row">
                 <div class="shoulder-btn" data-btn="4" data-keys="q">L</div>
@@ -327,10 +280,6 @@
                     <div class="zone z-d" data-btn="13" data-keys="ArrowDown,s"></div>
                     <div class="zone z-l" data-btn="14" data-keys="ArrowLeft,a"></div>
                     <div class="zone z-r" data-btn="15" data-keys="ArrowRight,d"></div>
-                    <div class="zone z-ul" data-btns="12,14" data-keys="ArrowUp,ArrowLeft,w,a"></div>
-                    <div class="zone z-ur" data-btns="12,15" data-keys="ArrowUp,ArrowRight,w,d"></div>
-                    <div class="zone z-dl" data-btns="13,14" data-keys="ArrowDown,ArrowLeft,s,a"></div>
-                    <div class="zone z-dr" data-btns="13,15" data-keys="ArrowDown,ArrowRight,s,d"></div>
                 </div>
 
                 <div class="action-cluster">
@@ -368,12 +317,21 @@
             } catch (e) {}
         }
 
+        async function pasteFromClipboard() {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (text) document.getElementById('url-input').value = text;
+            } catch (err) {
+                // Fallback: If clipboard API is blocked, focus input so user can try native paste
+                document.getElementById('url-input').focus();
+            }
+        }
+
         function setMode(mode) {
             currentMode = mode;
             const iframe = document.getElementById('game-iframe');
             iframe.className = '';
             iframe.classList.add('mode-' + mode);
-            
             document.querySelectorAll('.mode-option').forEach(el => el.classList.remove('active-mode'));
             document.getElementById('opt-' + mode).classList.add('active-mode');
         }
@@ -381,18 +339,14 @@
         function sendKey(key, type) {
             const iframe = document.getElementById('game-iframe');
             if (!iframe.contentWindow) return;
-            
-            // Critical for performance: focus the iframe on interaction
             iframe.focus();
-
             try {
                 iframe.contentWindow.postMessage({ type: 'keyboard-bridge', keyAction: type, key: key }, "*");
                 if (iframe.contentWindow.dispatchEvent) {
                     const kbEvent = new KeyboardEvent(type, {
                         key: key,
                         code: key.length === 1 ? `Key${key.toUpperCase()}` : key,
-                        bubbles: true,
-                        cancelable: true
+                        bubbles: true, cancelable: true
                     });
                     iframe.contentWindow.dispatchEvent(kbEvent);
                 }
@@ -410,13 +364,15 @@
         function saveSettings() {
             const url = urlInput.value || 'https://www.google.com/logos/2010/pacman10-i.html';
             iframe.src = url;
-            localStorage.setItem('vb_url_v4', url);
-            localStorage.setItem('vb_mode_v4', currentMode);
+            localStorage.setItem('vb_url_v5', url);
+            localStorage.setItem('vb_mode_v5', currentMode);
             toggleSettings();
             setTimeout(triggerConnection, 1000);
         }
 
         function handleInput(el, isPressed) {
+            if (overlay.style.display === 'flex') return; // Don't handle game inputs when settings open
+            
             const btnIdx = el.getAttribute('data-btn');
             const btnsIdx = el.getAttribute('data-btns');
             const keys = el.getAttribute('data-keys')?.split(',') || [];
@@ -462,12 +418,11 @@
         window.addEventListener('mouseup', () => allButtons.forEach(btn => handleInput(btn, false)));
 
         window.onload = () => {
-            urlInput.value = localStorage.getItem('vb_url_v4') || '';
-            const savedMode = localStorage.getItem('vb_mode_v4') || 'fit';
+            urlInput.value = localStorage.getItem('vb_url_v5') || '';
+            const savedMode = localStorage.getItem('vb_mode_v5') || 'fit';
             setMode(savedMode);
             saveSettings();
             
-            // Connection trigger on interaction
             const init = () => {
                 triggerConnection();
                 document.body.removeEventListener('touchstart', init);
