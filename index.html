@@ -46,7 +46,7 @@
             overflow: hidden;
         }
 
-        /* Screen Section: Clean container with no forced cropping */
+        /* Screen Section: Forces 100% width and exactly 60% of the phone height */
         .screen-section {
             width: 100%;
             flex: 0 0 60%; 
@@ -57,15 +57,18 @@
             align-items: center;
             justify-content: center;
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            overflow: hidden; /* Ensures nothing spills out */
         }
 
         #game-iframe {
+            /* Standard 100% behavior to avoid the "narrow" scale issue */
             width: 100%;
             height: 100%;
             border: none;
             background: #000;
-            /* Removes all previous cropping/scaling logic */
+            /* Using contain ensures the whole game is visible without cropping */
             object-fit: contain; 
+            /* Do NOT use zoom: 0.5 here; it will cause the narrow frame issue */
         }
 
         /* Controls Section: Exactly 40% */
@@ -87,7 +90,7 @@
             width: 100%;
         }
 
-        /* Faceted D-Pad */
+        /* Faceted D-Pad - Geometric styling to match image */
         .dpad-wrapper {
             position: relative;
             width: clamp(120px, 35vw, 160px);
@@ -123,7 +126,7 @@
         .z-dl { width: 30%; height: 30%; bottom: 0; left: 0; }
         .z-dr { width: 30%; height: 30%; bottom: 0; right: 0; }
 
-        /* Classic ABXY Cluster */
+        /* ABXY Cluster - Classic Layout Reverted */
         .action-cluster {
             display: grid;
             grid-template-areas: ". y ." "x . b" ". a .";
@@ -318,6 +321,7 @@
             const tiltMode = el.getAttribute('data-tilt');
             const keys = el.getAttribute('data-keys')?.split(',') || [];
 
+            // Double tap logic for Left/Right D-Pad to trigger Sprint
             if (isPressed && (tiltMode === 'left' || tiltMode === 'right')) {
                 const now = performance.now();
                 if (lastTap.key === tiltMode && now - lastTap.time < 300) {
@@ -363,7 +367,7 @@
         function saveSettings() {
             const url = document.getElementById('url-input').value || 'https://www.google.com/logos/2010/pacman10-i.html';
             document.getElementById('game-iframe').src = url;
-            localStorage.setItem('vb_url_v9', url);
+            localStorage.setItem('vb_url_v10', url);
             toggleSettings();
             setTimeout(triggerConnection, 1200);
         }
@@ -380,7 +384,7 @@
         window.addEventListener('mouseup', () => allButtons.forEach(btn => handleInput(btn, false)));
 
         window.onload = () => {
-            document.getElementById('url-input').value = localStorage.getItem('vb_url_v9') || '';
+            document.getElementById('url-input').value = localStorage.getItem('vb_url_v10') || '';
             saveSettings();
             const init = () => { triggerConnection(); document.body.removeEventListener('touchstart', init); };
             document.body.addEventListener('touchstart', init);
