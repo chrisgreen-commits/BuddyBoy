@@ -14,7 +14,6 @@
             --accent-color: #3a3a3c;
         }
 
-        /* Prevent all selection and system gestures */
         * {
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
@@ -47,32 +46,29 @@
             overflow: hidden;
         }
 
-        /* Top Screen Section - Exactly 60% HEIGHT */
+        /* Screen Section: Clean container with no forced cropping */
         .screen-section {
             width: 100%;
             flex: 0 0 60%; 
             background: #000;
+            position: relative;
+            z-index: 10;
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
-            z-index: 10;
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            overflow: hidden;
         }
 
         #game-iframe {
-            border: none;
-            background: #000;
             width: 100%;
             height: 100%;
-            /* Fixed Full Crop centered behavior */
-            object-fit: cover;
-            transform: scale(1.02); /* Slight scale to hide potential scrollbars/edges */
-            pointer-events: auto;
+            border: none;
+            background: #000;
+            /* Removes all previous cropping/scaling logic */
+            object-fit: contain; 
         }
 
-        /* Controls Section - Exactly 40% HEIGHT */
+        /* Controls Section: Exactly 40% */
         .controls-section {
             flex: 0 0 40%;
             display: flex;
@@ -91,15 +87,14 @@
             width: 100%;
         }
 
-        /* D-Pad with 8-way Visual Feedback */
+        /* Faceted D-Pad */
         .dpad-wrapper {
             position: relative;
-            width: clamp(110px, 32vw, 150px);
+            width: clamp(120px, 35vw, 160px);
             aspect-ratio: 1/1;
             background: #111;
             border-radius: 50%;
-            box-shadow: inset 0 2px 8px rgba(0,0,0,0.8);
-            perspective: 500px;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,1);
         }
 
         .dpad-hat {
@@ -107,17 +102,18 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 85%;
-            height: 85%;
-            background: radial-gradient(circle at 30% 30%, #444, #18181b);
+            width: 90%;
+            height: 90%;
             border-radius: 50%;
-            clip-path: polygon(33% 0%, 67% 0%, 67% 33%, 100% 33%, 100% 67%, 67% 67%, 67% 100%, 33% 100%, 33% 67%, 0% 67%, 0% 33%, 33% 33%);
-            transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: #2c2c2e;
+            background: conic-gradient(from 0deg, #3a3a3c, #1a1a1c 45deg, #2c2c2e 90deg, #111 135deg, #3a3a3c 180deg, #1a1a1c 225deg, #2c2c2e 270deg, #111 315deg);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
             pointer-events: none;
             z-index: 5;
+            transition: transform 0.1s ease-out;
         }
 
-        .zone { position: absolute; z-index: 20; }
+        .zone { position: absolute; z-index: 20; opacity: 0; }
         .z-u  { width: 40%; height: 35%; top: 0; left: 30%; }
         .z-d  { width: 40%; height: 35%; bottom: 0; left: 30%; }
         .z-l  { width: 35%; height: 40%; left: 0; top: 30%; }
@@ -127,94 +123,69 @@
         .z-dl { width: 30%; height: 30%; bottom: 0; left: 0; }
         .z-dr { width: 30%; height: 30%; bottom: 0; right: 0; }
 
+        /* Classic ABXY Cluster */
         .action-cluster {
             display: grid;
             grid-template-areas: ". y ." "x . b" ". a .";
-            gap: 8px;
-            width: clamp(110px, 32vw, 150px);
+            gap: 12px;
+            width: clamp(120px, 35vw, 160px);
             aspect-ratio: 1/1;
         }
+        .btn-a { grid-area: a; }
+        .btn-b { grid-area: b; }
+        .btn-x { grid-area: x; }
+        .btn-y { grid-area: y; }
 
         .btn {
             width: 100%; height: 100%; background: #2c2c2e; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            color: white; font-weight: bold; box-shadow: 0 4px 0 #000;
+            color: white; font-weight: bold; box-shadow: 0 5px 0 #000;
+            font-size: 1.2rem;
+            border: 1px solid #3a3a3c;
         }
 
         .active {
-            transform: translateY(2px);
+            transform: translateY(3px);
             box-shadow: 0 2px 0 #000;
-            filter: brightness(1.3);
+            filter: brightness(1.4);
         }
 
         .shoulder-row { display: flex; justify-content: space-between; width: 100%; }
         .shoulder-btn {
-            width: 32%; height: 36px; background: #1c1c1e; border-radius: 8px; border: 1px solid #3a3a3c;
-            color: #8e8e93; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 0.75rem;
+            width: 35%; height: 40px; background: #2c2c2e; border-radius: 10px; border: 1px solid #3a3a3c;
+            color: #8e8e93; font-weight: bold; display: flex; align-items: center; justify-content: center; 
+            box-shadow: 0 3px 0 #000;
         }
 
-        .menu-row { display: flex; justify-content: center; align-items: center; gap: 20px; }
-        .menu-btn { width: 40px; height: 10px; background: #111; border-radius: 5px; border-bottom: 2px solid #444; }
+        .menu-row { display: flex; justify-content: center; align-items: center; gap: 30px; }
+        .menu-btn { width: 45px; height: 12px; background: #111; border-radius: 6px; border-bottom: 2px solid #444; }
         
-        /* Turbo Button Styles */
         .turbo-btn {
-            width: 44px;
-            height: 44px;
-            background: #2c2c2e;
-            border-radius: 50%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid #3a3a3c;
-            color: #ef4444;
-            font-size: 0.6rem;
-            font-weight: 800;
-            box-shadow: 0 2px 0 #000;
-            transition: all 0.2s ease;
+            width: 55px; height: 55px; background: #2c2c2e; border-radius: 50%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border: 2px solid #3a3a3c; color: #ef4444; font-size: 0.65rem; font-weight: 900;
+            box-shadow: 0 3px 0 #000; transition: all 0.2s ease;
         }
-        .turbo-btn.active-turbo {
-            background: #ef4444;
-            color: #fff;
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
-            border-color: #f87171;
+        .turbo-btn.active-turbo { 
+            background: #ef4444; color: #fff; border-color: #fca5a5;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.7);
+            transform: scale(1.05);
         }
-        .turbo-val { font-size: 0.8rem; line-height: 1; }
 
-        /* SETTINGS OVERLAY */
         #settings-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(10, 10, 12, 0.98);
-            z-index: 100;
-            display: none;
-            flex-direction: column;
-            padding: 30px 24px;
-            color: white;
-            overflow-y: auto;
-            user-select: text !important;
-            -webkit-user-select: text !important;
-            touch-action: auto !important;
+            position: absolute; inset: 0; background: rgba(10, 10, 12, 0.98);
+            z-index: 100; display: none; flex-direction: column; padding: 40px 24px; color: white;
+            user-select: text !important; -webkit-user-select: text !important; touch-action: auto !important;
         }
 
         .gear-icon {
             position: absolute; top: 15px; right: 15px; z-index: 50; color: #ffffff;
-            background: rgba(0,0,0,0.5); border-radius: 50%; width: 44px; height: 44px;
-            display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
-            backdrop-filter: blur(8px);
+            background: rgba(0,0,0,0.6); border-radius: 50%; width: 48px; height: 48px;
+            display: flex; align-items: center; justify-content: center; font-size: 1.4rem; backdrop-filter: blur(8px);
         }
 
-        .input-group { margin-bottom: 18px; }
-        label { display: block; font-size: 0.7rem; text-transform: uppercase; color: #8e8e93; margin-bottom: 6px; }
-        
-        .url-input-container { display: flex; gap: 8px; }
-
-        input { 
-            background: #2c2c2e; color: white; border: 1px solid #3a3a3c; padding: 12px; 
-            border-radius: 8px; width: 100%; user-select: text !important;
-        }
-
-        .paste-btn { background: #3a3a3c; padding: 0 15px; border-radius: 8px; color: #fff; font-size: 0.8rem; }
+        input { background: #2c2c2e; color: white; border: 1px solid #444; padding: 16px; border-radius: 12px; width: 100%; font-size: 1rem; }
+        .paste-btn { background: #444; padding: 0 20px; border-radius: 12px; color: #fff; }
     </style>
 </head>
 <body>
@@ -225,22 +196,16 @@
         </div>
 
         <div id="settings-overlay">
-            <h2 class="text-xl font-bold mb-6">Console Settings</h2>
-            
-            <div class="input-group">
-                <label>Game Source URL</label>
-                <div class="url-input-container">
-                    <input type="text" id="url-input" placeholder="https://game-site.com" autocomplete="off">
-                    <button onclick="pasteFromClipboard()" class="paste-btn">
-                        <i class="fas fa-paste"></i>
-                    </button>
+            <h2 class="text-2xl font-bold mb-8">System Settings</h2>
+            <div class="mb-6">
+                <label class="text-xs text-zinc-500 uppercase tracking-widest font-bold">Game Source</label>
+                <div class="flex gap-3 mt-2">
+                    <input type="text" id="url-input" placeholder="https://..." autocomplete="off">
+                    <button onclick="pasteFromClipboard()" class="paste-btn"><i class="fas fa-paste"></i></button>
                 </div>
             </div>
-
-            <div class="mt-2 flex flex-col gap-3">
-                <button onclick="saveSettings()" class="bg-blue-600 py-4 rounded-xl font-bold text-lg">Apply & Restart</button>
-                <button onclick="toggleSettings()" class="text-zinc-500 py-2">Back to Game</button>
-            </div>
+            <button onclick="saveSettings()" class="bg-blue-600 py-5 rounded-2xl font-black text-xl mt-4 active:scale-95 transition-transform">INITIALIZE GAME</button>
+            <button onclick="toggleSettings()" class="text-zinc-500 py-4 mt-4 font-bold">CANCEL</button>
         </div>
 
         <div class="screen-section">
@@ -277,8 +242,8 @@
             <div class="menu-row">
                 <div class="menu-btn" data-btn="8" data-keys="Tab"></div>
                 <button class="turbo-btn" onclick="toggleTurbo()">
-                    <span>TURBO</span>
-                    <span class="turbo-val" id="turbo-display">OFF</span>
+                    <span class="tracking-tighter">TURBO</span>
+                    <span id="turbo-display" class="text-xs">OFF</span>
                 </button>
                 <div class="menu-btn" data-btn="9" data-keys="p"></div>
             </div>
@@ -295,8 +260,8 @@
 
         navigator.getGamepads = () => [virtualGamepad, null, null, null];
 
-        let turboLevel = 0; // 0, 2, 4
-        let turboInterval = null;
+        let turboLevel = 0; 
+        let lastTap = { key: null, time: 0 };
 
         function triggerConnection() {
             try {
@@ -310,88 +275,57 @@
             try {
                 const text = await navigator.clipboard.readText();
                 if (text) document.getElementById('url-input').value = text;
-            } catch (err) {
-                document.getElementById('url-input').focus();
-            }
+            } catch (err) { document.getElementById('url-input').focus(); }
         }
 
         function toggleTurbo() {
+            turboLevel = (turboLevel + 1) % 3;
             const display = document.getElementById('turbo-display');
             const btn = document.querySelector('.turbo-btn');
-            
-            if (turboLevel === 0) turboLevel = 2;
-            else if (turboLevel === 2) turboLevel = 4;
-            else turboLevel = 0;
-
-            if (turboLevel > 0) {
-                display.innerText = turboLevel + 'X';
-                btn.classList.add('active-turbo');
-                startTurboLoop();
-            } else {
-                display.innerText = 'OFF';
-                btn.classList.remove('active-turbo');
-                stopTurboLoop();
-            }
+            const speeds = ['OFF', '2X', '4X'];
+            display.innerText = speeds[turboLevel];
+            turboLevel > 0 ? btn.classList.add('active-turbo') : btn.classList.remove('active-turbo');
         }
 
-        function startTurboLoop() {
-            stopTurboLoop();
-            // Turbo works by rapid-firing interaction events that often force browser loops to wake up
-            // or by triggering emulators that listen for high frequency pulses.
-            turboInterval = setInterval(() => {
+        function turboPump() {
+            if (turboLevel > 0) {
+                const multi = turboLevel * 2;
                 const iframe = document.getElementById('game-iframe');
                 if (iframe.contentWindow) {
-                    iframe.contentWindow.postMessage({ type: 'turbo-pulse' }, "*");
-                    // Also fire a dummy empty event to keep the process priority high
-                    iframe.focus();
+                    for(let i=0; i<multi; i++) {
+                        iframe.contentWindow.postMessage({ type: 'gamepad-update', state: virtualGamepad }, "*");
+                        iframe.contentWindow.postMessage({ type: 'turbo-tick' }, "*");
+                    }
                 }
-            }, 1000 / (60 * turboLevel));
+            }
+            requestAnimationFrame(turboPump);
         }
-
-        function stopTurboLoop() {
-            if (turboInterval) clearInterval(turboInterval);
-        }
+        turboPump();
 
         function sendKey(key, type) {
             const iframe = document.getElementById('game-iframe');
             if (!iframe.contentWindow) return;
-            iframe.focus();
             try {
                 iframe.contentWindow.postMessage({ type: 'keyboard-bridge', keyAction: type, key: key }, "*");
-                if (iframe.contentWindow.dispatchEvent) {
-                    const kbEvent = new KeyboardEvent(type, {
-                        key: key,
-                        code: key.length === 1 ? `Key${key.toUpperCase()}` : key,
-                        bubbles: true, cancelable: true
-                    });
-                    iframe.contentWindow.dispatchEvent(kbEvent);
-                }
             } catch (err) {}
         }
 
-        const iframe = document.getElementById('game-iframe');
-        const overlay = document.getElementById('settings-overlay');
-        const urlInput = document.getElementById('url-input');
-
-        function toggleSettings() {
-            overlay.style.display = overlay.style.display === 'flex' ? 'none' : 'flex';
-        }
-
-        function saveSettings() {
-            const url = urlInput.value || 'https://www.google.com/logos/2010/pacman10-i.html';
-            iframe.src = url;
-            localStorage.setItem('vb_url_v6', url);
-            toggleSettings();
-            setTimeout(triggerConnection, 1000);
-        }
-
         function handleInput(el, isPressed) {
-            if (overlay.style.display === 'flex') return;
+            if (document.getElementById('settings-overlay').style.display === 'flex') return;
             
             const btnIdx = el.getAttribute('data-btn');
             const btnsIdx = el.getAttribute('data-btns');
             const tiltMode = el.getAttribute('data-tilt');
             const keys = el.getAttribute('data-keys')?.split(',') || [];
+
+            if (isPressed && (tiltMode === 'left' || tiltMode === 'right')) {
+                const now = performance.now();
+                if (lastTap.key === tiltMode && now - lastTap.time < 300) {
+                    sendKey(keys[0], 'keyup');
+                    setTimeout(() => sendKey(keys[0], 'keydown'), 15);
+                }
+                lastTap = { key: tiltMode, time: now };
+            }
 
             const apply = (idx) => {
                 const i = parseInt(idx);
@@ -401,7 +335,6 @@
 
             if (btnIdx) apply(btnIdx);
             if (btnsIdx) btnsIdx.split(',').forEach(apply);
-
             keys.forEach(k => sendKey(k, isPressed ? 'keydown' : 'keyup'));
 
             if (isPressed) {
@@ -409,33 +342,36 @@
                 if (tiltMode) {
                     const hat = document.querySelector('.dpad-hat');
                     let tx = -50, ty = -50, rx = 0, ry = 0;
-                    if (tiltMode.includes('up')) { ty = -58; rx = 10; }
-                    if (tiltMode.includes('down')) { ty = -42; rx = -10; }
-                    if (tiltMode.includes('left')) { tx = -58; ry = -10; }
-                    if (tiltMode.includes('right')) { tx = -42; ry = 10; }
-                    hat.style.transform = `translate(${tx}%, ${ty}%) rotateX(${rx}deg) rotateY(${ry}deg)`;
+                    if (tiltMode.includes('up')) { ty = -56; rx = 12; }
+                    if (tiltMode.includes('down')) { ty = -44; rx = -12; }
+                    if (tiltMode.includes('left')) { tx = -56; ry = -12; }
+                    if (tiltMode.includes('right')) { tx = -44; ry = 12; }
+                    hat.style.transform = `translate(${tx}%, ${ty}%) rotateX(${rx}deg) rotateY(${ry}deg) scale(0.98)`;
                 }
             } else {
                 el.classList.remove('active');
-                if (tiltMode) {
-                    document.querySelector('.dpad-hat').style.transform = 'translate(-50%, -50%)';
-                }
+                if (tiltMode) document.querySelector('.dpad-hat').style.transform = 'translate(-50%, -50%)';
             }
             virtualGamepad.timestamp = performance.now();
         }
 
+        function toggleSettings() {
+            const ov = document.getElementById('settings-overlay');
+            ov.style.display = ov.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        function saveSettings() {
+            const url = document.getElementById('url-input').value || 'https://www.google.com/logos/2010/pacman10-i.html';
+            document.getElementById('game-iframe').src = url;
+            localStorage.setItem('vb_url_v9', url);
+            toggleSettings();
+            setTimeout(triggerConnection, 1200);
+        }
+
         const allButtons = document.querySelectorAll('[data-btn], [data-btns]');
         allButtons.forEach(btn => {
-            const press = (e) => { 
-                e.preventDefault(); 
-                e.stopPropagation();
-                handleInput(btn, true); 
-            };
-            const release = (e) => { 
-                e.preventDefault(); 
-                e.stopPropagation();
-                handleInput(btn, false); 
-            };
+            const press = (e) => { e.preventDefault(); e.stopPropagation(); handleInput(btn, true); };
+            const release = (e) => { e.preventDefault(); e.stopPropagation(); handleInput(btn, false); };
             btn.addEventListener('touchstart', press, {passive: false});
             btn.addEventListener('touchend', release, {passive: false});
             btn.addEventListener('mousedown', press);
@@ -444,16 +380,10 @@
         window.addEventListener('mouseup', () => allButtons.forEach(btn => handleInput(btn, false)));
 
         window.onload = () => {
-            urlInput.value = localStorage.getItem('vb_url_v6') || '';
+            document.getElementById('url-input').value = localStorage.getItem('vb_url_v9') || '';
             saveSettings();
-            
-            const init = () => {
-                triggerConnection();
-                document.body.removeEventListener('touchstart', init);
-                document.body.removeEventListener('mousedown', init);
-            };
+            const init = () => { triggerConnection(); document.body.removeEventListener('touchstart', init); };
             document.body.addEventListener('touchstart', init);
-            document.body.addEventListener('mousedown', init);
         };
     </script>
 </body>
