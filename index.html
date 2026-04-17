@@ -34,64 +34,81 @@
             touch-action: none;
         }
 
-        /* 9:16 Mobile Aspect Ratio Container */
         .viewport-wrapper {
             position: relative;
             width: 100%;
             height: 100%;
-            max-width: 500px; 
-            aspect-ratio: 9 / 16;
             background: var(--body-color);
             display: flex;
             flex-direction: column;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            overflow: hidden;
         }
 
-        /* Top Screen Section - 60% HEIGHT */
+        /* Top Screen Section - Exactly 60% HEIGHT */
         .screen-section {
             width: 100%;
             flex: 0 0 60%; 
             background: #000;
             display: flex;
-            flex-direction: column;
+            align-items: center;
             justify-content: center;
             position: relative;
             z-index: 10;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            overflow: hidden;
+            will-change: transform; /* Hint for performance */
         }
 
         #game-iframe {
-            width: 100%;
-            height: 100%;
             border: none;
             background: #000;
+            transition: all 0.3s ease;
         }
 
-        /* Controls Section - 40% HEIGHT */
+        /* Display Modes */
+        .mode-fit { 
+            width: 100%; 
+            height: auto; 
+            aspect-ratio: 16 / 9; 
+            object-fit: contain; 
+        }
+        
+        .mode-stretch { 
+            width: 100% !important; 
+            height: 100% !important; 
+            object-fit: fill; 
+        }
+        
+        .mode-crop { 
+            width: 100% !important; 
+            height: 100% !important; 
+            object-fit: cover;
+            transform: scale(1.1); /* Slight boost to ensure coverage */
+        }
+
+        /* Controls Section - Exactly 40% HEIGHT */
         .controls-section {
-            flex: 1;
+            flex: 0 0 40%;
             display: flex;
             flex-direction: column;
-            padding: 15px;
-            justify-content: space-between;
+            padding: 10px 20px env(safe-area-inset-bottom);
+            justify-content: space-around;
             background: linear-gradient(to bottom, #2c2c2e, #1c1c1e);
             border-top: 1px solid #3a3a3c;
             position: relative;
         }
 
-        /* Control Layout Grids */
         .main-controls {
             display: flex;
             justify-content: space-between;
             align-items: center;
             width: 100%;
-            margin-top: 10px;
         }
 
-        /* D-Pad */
         .dpad-wrapper {
             position: relative;
-            width: 140px;
-            height: 140px;
+            width: clamp(110px, 32vw, 150px);
+            aspect-ratio: 1/1;
             background: #111;
             border-radius: 50%;
             box-shadow: inset 0 2px 8px rgba(0,0,0,0.8);
@@ -102,8 +119,8 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 120px;
-            height: 120px;
+            width: 85%;
+            height: 85%;
             background: radial-gradient(circle at 30% 30%, #444, #18181b);
             border-radius: 50%;
             clip-path: polygon(33% 0%, 67% 0%, 67% 33%, 100% 33%, 100% 67%, 67% 67%, 67% 100%, 33% 100%, 33% 67%, 0% 67%, 0% 33%, 33% 33%);
@@ -111,28 +128,27 @@
             pointer-events: none;
         }
 
-        .zone { position: absolute; width: 45px; height: 45px; z-index: 20; }
-        .z-u { top: 0; left: 47.5px; }
-        .z-d { bottom: 0; left: 47.5px; }
-        .z-l { left: 0; top: 47.5px; }
-        .z-r { right: 0; top: 47.5px; }
-        .z-ul { top: 5px; left: 5px; }
-        .z-ur { top: 5px; right: 5px; }
-        .z-dl { bottom: 5px; left: 5px; }
-        .z-dr { bottom: 5px; right: 5px; }
+        .zone { position: absolute; width: 33%; height: 33%; z-index: 20; }
+        .z-u { top: 0; left: 33.5%; }
+        .z-d { bottom: 0; left: 33.5%; }
+        .z-l { left: 0; top: 33.5%; }
+        .z-r { right: 0; top: 33.5%; }
+        .z-ul { top: 5%; left: 5%; }
+        .z-ur { top: 5%; right: 5%; }
+        .z-dl { bottom: 5%; left: 5%; }
+        .z-dr { bottom: 5%; right: 5%; }
 
-        /* Buttons */
         .action-cluster {
             display: grid;
             grid-template-areas: ". y ." "x . b" ". a .";
-            gap: 10px;
-            width: 140px;
-            height: 140px;
+            gap: 8px;
+            width: clamp(110px, 32vw, 150px);
+            aspect-ratio: 1/1;
         }
 
         .btn {
-            width: 45px;
-            height: 45px;
+            width: 100%;
+            height: 100%;
             background: #2c2c2e;
             border-radius: 50%;
             display: flex;
@@ -144,18 +160,17 @@
             font-size: 1.1rem;
         }
 
-        .btn-y { grid-area: y; border: 1px solid #facc1555; }
-        .btn-x { grid-area: x; border: 1px solid #60a5fa55; }
-        .btn-b { grid-area: b; border: 1px solid #f8717155; }
-        .btn-a { grid-area: a; border: 1px solid #4ade8055; }
+        .btn-y { grid-area: y; border: 1px solid #facc1533; }
+        .btn-x { grid-area: x; border: 1px solid #60a5fa33; }
+        .btn-b { grid-area: b; border: 1px solid #f8717133; }
+        .btn-a { grid-area: a; border: 1px solid #4ade8033; }
 
         .active {
-            transform: translateY(3px);
-            box-shadow: 0 1px 0 #000;
-            filter: brightness(1.4);
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #000;
+            filter: brightness(1.3);
         }
 
-        /* Shoulder Row */
         .shoulder-row {
             display: flex;
             justify-content: space-between;
@@ -163,8 +178,8 @@
         }
 
         .shoulder-btn {
-            width: 40%;
-            height: 35px;
+            width: 32%;
+            height: 36px;
             background: #1c1c1e;
             border-radius: 8px;
             border: 1px solid #3a3a3c;
@@ -176,12 +191,10 @@
             font-size: 0.75rem;
         }
 
-        /* Menu/Utility */
         .menu-row {
             display: flex;
             justify-content: center;
             gap: 30px;
-            padding-bottom: 5px;
         }
 
         .menu-btn {
@@ -192,16 +205,16 @@
             border-bottom: 2px solid #444;
         }
 
-        /* Settings */
         #settings-overlay {
             position: absolute;
             inset: 0;
-            background: rgba(0,0,0,0.95);
+            background: rgba(10, 10, 12, 0.98);
             z-index: 100;
             display: none;
             flex-direction: column;
-            padding: 40px 20px;
+            padding: 30px 24px;
             color: white;
+            overflow-y: auto;
         }
 
         .gear-icon {
@@ -209,19 +222,54 @@
             top: 15px;
             right: 15px;
             z-index: 50;
-            color: #8e8e93;
-            font-size: 1.2rem;
-            padding: 10px;
+            color: #ffffff;
+            background: rgba(0,0,0,0.5);
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            backdrop-filter: blur(8px);
         }
 
-        input {
-            background: #2c2c2e;
-            color: white;
-            border: 1px solid #3a3a3c;
-            padding: 12px;
-            border-radius: 8px;
-            width: 100%;
+        .input-group { margin-bottom: 18px; }
+        label { display: block; font-size: 0.7rem; text-transform: uppercase; color: #8e8e93; margin-bottom: 6px; }
+        input { background: #2c2c2e; color: white; border: 1px solid #3a3a3c; padding: 12px; border-radius: 8px; width: 100%; }
+
+        .mode-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
             margin-bottom: 20px;
+        }
+
+        .mode-option {
+            background: #2c2c2e;
+            border: 1px solid #3a3a3c;
+            padding: 10px 5px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.7rem;
+            cursor: pointer;
+            color: #8e8e93;
+        }
+
+        .mode-option.active-mode {
+            background: #3b82f6;
+            border-color: #60a5fa;
+            color: white;
+            font-weight: bold;
+        }
+
+        .info-box {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            color: #93c5fd;
         }
     </style>
 </head>
@@ -233,30 +281,36 @@
         </div>
 
         <div id="settings-overlay">
-            <h2 class="text-xl font-bold mb-6">Device Setup</h2>
-            <label class="text-xs uppercase text-zinc-500 mb-1 block">Game URL</label>
-            <input type="text" id="url-input" placeholder="Paste URL here...">
+            <h2 class="text-xl font-bold mb-6">Console Settings</h2>
             
-            <div class="bg-zinc-800 p-4 rounded-lg mb-6 text-sm text-zinc-400">
-                <p class="mb-2"><i class="fas fa-keyboard mr-2"></i> <strong>Compatibility Mode:</strong></p>
-                <p class="mb-4 text-xs">If a game doesn't respond to touches, it likely blocks external scripts due to security (Cross-Origin). Gamepad API is usually the most reliable method for such games.</p>
-                <p class="mb-2"><strong>Key Mapping:</strong></p>
-                <ul class="list-disc ml-5 space-y-1">
-                    <li>DPAD = Arrow Keys / WASD</li>
-                    <li>A = Space / Enter</li>
-                    <li>B = Esc / Shift</li>
-                </ul>
+            <div class="input-group">
+                <label>Game Source URL</label>
+                <input type="text" id="url-input" placeholder="https://game-site.com">
             </div>
 
-            <div class="mt-auto flex flex-col gap-3">
-                <button onclick="saveSettings()" class="bg-blue-600 py-4 rounded-xl font-bold">Launch Game</button>
-                <button onclick="toggleSettings()" class="text-zinc-400 py-2">Cancel</button>
+            <div class="input-group">
+                <label>Screen Ratio Mode</label>
+                <div class="mode-selector">
+                    <div class="mode-option" id="opt-fit" onclick="setMode('fit')">16:9<br>Fit</div>
+                    <div class="mode-option" id="opt-stretch" onclick="setMode('stretch')">Full<br>Stretch</div>
+                    <div class="mode-option" id="opt-crop" onclick="setMode('crop')">Full<br>Crop</div>
+                </div>
+            </div>
+
+            <div class="mt-2 flex flex-col gap-3">
+                <button onclick="saveSettings()" class="bg-blue-600 py-4 rounded-xl font-bold text-lg">Apply & Restart</button>
+                <button onclick="toggleSettings()" class="text-zinc-500 py-2">Back to Game</button>
+            </div>
+
+            <div class="info-box mt-6">
+                <p class="font-bold mb-1"><i class="fas fa-bolt mr-2"></i>Performance Tip</p>
+                <p class="opacity-80">If the game feels slow, try "Apply & Restart". Some browsers throttle background iframes until interaction occurs.</p>
             </div>
         </div>
 
         <!-- 60% Screen -->
         <div class="screen-section">
-            <iframe id="game-iframe" src="about:blank"></iframe>
+            <iframe id="game-iframe" src="about:blank" scrolling="no" allow="autoplay; gamepad"></iframe>
         </div>
 
         <!-- 40% Controls -->
@@ -267,21 +321,18 @@
             </div>
 
             <div class="main-controls">
-                <!-- D-Pad -->
                 <div class="dpad-wrapper">
                     <div class="dpad-hat"></div>
                     <div class="zone z-u" data-btn="12" data-keys="ArrowUp,w"></div>
                     <div class="zone z-d" data-btn="13" data-keys="ArrowDown,s"></div>
                     <div class="zone z-l" data-btn="14" data-keys="ArrowLeft,a"></div>
                     <div class="zone z-r" data-btn="15" data-keys="ArrowRight,d"></div>
-                    
                     <div class="zone z-ul" data-btns="12,14" data-keys="ArrowUp,ArrowLeft,w,a"></div>
                     <div class="zone z-ur" data-btns="12,15" data-keys="ArrowUp,ArrowRight,w,d"></div>
                     <div class="zone z-dl" data-btns="13,14" data-keys="ArrowDown,ArrowLeft,s,a"></div>
                     <div class="zone z-dr" data-btns="13,15" data-keys="ArrowDown,ArrowRight,s,d"></div>
                 </div>
 
-                <!-- Action Buttons -->
                 <div class="action-cluster">
                     <div class="btn btn-y" data-btn="3" data-keys="i">Y</div>
                     <div class="btn btn-x" data-btn="2" data-keys="j">X</div>
@@ -298,21 +349,16 @@
     </div>
 
     <script>
-        /**
-         * VIRTUAL GAMEPAD STATE
-         */
         const virtualGamepad = {
             id: "Handheld Virtual Controller",
-            index: 0,
-            connected: true,
-            timestamp: performance.now(),
-            mapping: "standard",
+            index: 0, connected: true, timestamp: performance.now(), mapping: "standard",
             axes: [0, 0, 0, 0],
             buttons: Array(17).fill(0).map(() => ({ pressed: false, touched: false, value: 0 }))
         };
 
-        // Inject Virtual Gamepad into Navigator
         navigator.getGamepads = () => [virtualGamepad, null, null, null];
+
+        let currentMode = 'fit';
 
         function triggerConnection() {
             try {
@@ -322,42 +368,37 @@
             } catch (e) {}
         }
 
-        /**
-         * KEYBOARD BRIDGE
-         * Sends keyboard events using safe methods for cross-origin iframes
-         */
+        function setMode(mode) {
+            currentMode = mode;
+            const iframe = document.getElementById('game-iframe');
+            iframe.className = '';
+            iframe.classList.add('mode-' + mode);
+            
+            document.querySelectorAll('.mode-option').forEach(el => el.classList.remove('active-mode'));
+            document.getElementById('opt-' + mode).classList.add('active-mode');
+        }
+
         function sendKey(key, type) {
             const iframe = document.getElementById('game-iframe');
             if (!iframe.contentWindow) return;
             
-            const eventData = {
-                type: 'keyboard-bridge',
-                keyAction: type,
-                key: key,
-                code: key.length === 1 ? `Key${key.toUpperCase()}` : key
-            };
+            // Critical for performance: focus the iframe on interaction
+            iframe.focus();
 
-            // Attempt 1: Safe postMessage (Works if the iframe game is programmed to listen for it)
-            iframe.contentWindow.postMessage(eventData, "*");
-
-            // Attempt 2: Direct dispatch (Wrapped in try-catch to prevent SecurityError crash)
             try {
+                iframe.contentWindow.postMessage({ type: 'keyboard-bridge', keyAction: type, key: key }, "*");
                 if (iframe.contentWindow.dispatchEvent) {
                     const kbEvent = new KeyboardEvent(type, {
                         key: key,
-                        code: eventData.code,
+                        code: key.length === 1 ? `Key${key.toUpperCase()}` : key,
                         bubbles: true,
                         cancelable: true
                     });
                     iframe.contentWindow.dispatchEvent(kbEvent);
                 }
-            } catch (err) {
-                // Silently fail if cross-origin policy prevents direct dispatch.
-                // The Gamepad API layer will still work for games that support it.
-            }
+            } catch (err) {}
         }
 
-        // --- Logic ---
         const iframe = document.getElementById('game-iframe');
         const overlay = document.getElementById('settings-overlay');
         const urlInput = document.getElementById('url-input');
@@ -369,7 +410,8 @@
         function saveSettings() {
             const url = urlInput.value || 'https://www.google.com/logos/2010/pacman10-i.html';
             iframe.src = url;
-            localStorage.setItem('vb_url_v2', url);
+            localStorage.setItem('vb_url_v4', url);
+            localStorage.setItem('vb_mode_v4', currentMode);
             toggleSettings();
             setTimeout(triggerConnection, 1000);
         }
@@ -388,18 +430,16 @@
             if (btnIdx) apply(btnIdx);
             if (btnsIdx) btnsIdx.split(',').forEach(apply);
 
-            // Key Bridge
             keys.forEach(k => sendKey(k, isPressed ? 'keydown' : 'keyup'));
 
-            // UI Feedback
             if (isPressed) {
                 el.classList.add('active');
                 if (el.classList.contains('zone')) {
                     const hat = document.querySelector('.dpad-hat');
-                    if (el.classList.contains('z-u')) hat.style.transform = 'translate(-50%, -58%) rotateX(15deg)';
-                    if (el.classList.contains('z-d')) hat.style.transform = 'translate(-50%, -42%) rotateX(-15deg)';
-                    if (el.classList.contains('z-l')) hat.style.transform = 'translate(-58%, -50%) rotateY(-15deg)';
-                    if (el.classList.contains('z-r')) hat.style.transform = 'translate(-42%, -50%) rotateY(15deg)';
+                    if (el.classList.contains('z-u')) hat.style.transform = 'translate(-50%, -58%) rotateX(10deg)';
+                    if (el.classList.contains('z-d')) hat.style.transform = 'translate(-50%, -42%) rotateX(-10deg)';
+                    if (el.classList.contains('z-l')) hat.style.transform = 'translate(-58%, -50%) rotateY(-10deg)';
+                    if (el.classList.contains('z-r')) hat.style.transform = 'translate(-42%, -50%) rotateY(10deg)';
                 }
             } else {
                 el.classList.remove('active');
@@ -410,25 +450,24 @@
             virtualGamepad.timestamp = performance.now();
         }
 
-        // Setup Event Listeners
         const allButtons = document.querySelectorAll('[data-btn], [data-btns]');
         allButtons.forEach(btn => {
             const press = (e) => { e.preventDefault(); handleInput(btn, true); };
             const release = (e) => { e.preventDefault(); handleInput(btn, false); };
-            
             btn.addEventListener('touchstart', press, {passive: false});
             btn.addEventListener('touchend', release, {passive: false});
             btn.addEventListener('mousedown', press);
         });
 
-        window.addEventListener('mouseup', () => {
-            allButtons.forEach(btn => handleInput(btn, false));
-        });
+        window.addEventListener('mouseup', () => allButtons.forEach(btn => handleInput(btn, false)));
 
         window.onload = () => {
-            urlInput.value = localStorage.getItem('vb_url_v2') || '';
+            urlInput.value = localStorage.getItem('vb_url_v4') || '';
+            const savedMode = localStorage.getItem('vb_mode_v4') || 'fit';
+            setMode(savedMode);
             saveSettings();
             
+            // Connection trigger on interaction
             const init = () => {
                 triggerConnection();
                 document.body.removeEventListener('touchstart', init);
