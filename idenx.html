@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>WebHandheld Console</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --body-color: #1c1c1e;
+            --screen-bg: #000;
+            --button-color: #2c2c2e;
+            --accent-color: #3a3a3c;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #000;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            font-family: -apple-system, system-ui, sans-serif;
+            user-select: none;
+            touch-action: none;
+        }
+
+        /* 9:16 Mobile Aspect Ratio Container */
+        .viewport-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 500px; 
+            aspect-ratio: 9 / 16;
+            background: var(--body-color);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        }
+
+        /* Top Screen Section - 60% HEIGHT */
+        .screen-section {
+            width: 100%;
+            flex: 0 0 60%; 
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        #game-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #000;
+        }
+
+        /* Controls Section - 40% HEIGHT */
+        .controls-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            justify-content: space-between;
+            background: linear-gradient(to bottom, #2c2c2e, #1c1c1e);
+            border-top: 1px solid #3a3a3c;
+            position: relative;
+        }
+
+        /* Control Layout Grids */
+        .main-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        /* D-Pad */
+        .dpad-wrapper {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            background: #111;
+            border-radius: 50%;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.8);
+        }
+
+        .dpad-hat {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle at 30% 30%, #444, #18181b);
+            border-radius: 50%;
+            clip-path: polygon(33% 0%, 67% 0%, 67% 33%, 100% 33%, 100% 67%, 67% 67%, 67% 100%, 33% 100%, 33% 67%, 0% 67%, 0% 33%, 33% 33%);
+            transition: transform 0.1s ease;
+            pointer-events: none;
+        }
+
+        .zone { position: absolute; width: 45px; height: 45px; z-index: 20; }
+        .z-u { top: 0; left: 47.5px; }
+        .z-d { bottom: 0; left: 47.5px; }
+        .z-l { left: 0; top: 47.5px; }
+        .z-r { right: 0; top: 47.5px; }
+        .z-ul { top: 5px; left: 5px; }
+        .z-ur { top: 5px; right: 5px; }
+        .z-dl { bottom: 5px; left: 5px; }
+        .z-dr { bottom: 5px; right: 5px; }
+
+        /* Buttons */
+        .action-cluster {
+            display: grid;
+            grid-template-areas: ". y ." "x . b" ". a .";
+            gap: 10px;
+            width: 140px;
+            height: 140px;
+        }
+
+        .btn {
+            width: 45px;
+            height: 45px;
+            background: #2c2c2e;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 0 #000;
+            font-size: 1.1rem;
+        }
+
+        .btn-y { grid-area: y; border: 1px solid #facc1555; }
+        .btn-x { grid-area: x; border: 1px solid #60a5fa55; }
+        .btn-b { grid-area: b; border: 1px solid #f8717155; }
+        .btn-a { grid-area: a; border: 1px solid #4ade8055; }
+
+        .active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #000;
+            filter: brightness(1.4);
+        }
+
+        /* Shoulder Row */
+        .shoulder-row {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .shoulder-btn {
+            width: 40%;
+            height: 35px;
+            background: #1c1c1e;
+            border-radius: 8px;
+            border: 1px solid #3a3a3c;
+            color: #8e8e93;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+
+        /* Menu/Utility */
+        .menu-row {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            padding-bottom: 5px;
+        }
+
+        .menu-btn {
+            width: 40px;
+            height: 10px;
+            background: #111;
+            border-radius: 5px;
+            border-bottom: 2px solid #444;
+        }
+
+        /* Settings */
+        #settings-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            padding: 40px 20px;
+            color: white;
+        }
+
+        .gear-icon {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 50;
+            color: #8e8e93;
+            font-size: 1.2rem;
+            padding: 10px;
+        }
+
+        input {
+            background: #2c2c2e;
+            color: white;
+            border: 1px solid #3a3a3c;
+            padding: 12px;
+            border-radius: 8px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="viewport-wrapper">
+        <div class="gear-icon" onclick="toggleSettings()">
+            <i class="fas fa-cog"></i>
+        </div>
+
+        <div id="settings-overlay">
+            <h2 class="text-xl font-bold mb-6">Device Setup</h2>
+            <label class="text-xs uppercase text-zinc-500 mb-1 block">Game URL</label>
+            <input type="text" id="url-input" placeholder="Paste URL here...">
+            
+            <div class="bg-zinc-800 p-4 rounded-lg mb-6 text-sm text-zinc-400">
+                <p class="mb-2"><i class="fas fa-keyboard mr-2"></i> <strong>Compatibility Mode:</strong></p>
+                <p class="mb-4 text-xs">If a game doesn't respond to touches, it likely blocks external scripts due to security (Cross-Origin). Gamepad API is usually the most reliable method for such games.</p>
+                <p class="mb-2"><strong>Key Mapping:</strong></p>
+                <ul class="list-disc ml-5 space-y-1">
+                    <li>DPAD = Arrow Keys / WASD</li>
+                    <li>A = Space / Enter</li>
+                    <li>B = Esc / Shift</li>
+                </ul>
+            </div>
+
+            <div class="mt-auto flex flex-col gap-3">
+                <button onclick="saveSettings()" class="bg-blue-600 py-4 rounded-xl font-bold">Launch Game</button>
+                <button onclick="toggleSettings()" class="text-zinc-400 py-2">Cancel</button>
+            </div>
+        </div>
+
+        <!-- 60% Screen -->
+        <div class="screen-section">
+            <iframe id="game-iframe" src="about:blank"></iframe>
+        </div>
+
+        <!-- 40% Controls -->
+        <div class="controls-section">
+            <div class="shoulder-row">
+                <div class="shoulder-btn" data-btn="4" data-keys="q">L</div>
+                <div class="shoulder-btn" data-btn="5" data-keys="e">R</div>
+            </div>
+
+            <div class="main-controls">
+                <!-- D-Pad -->
+                <div class="dpad-wrapper">
+                    <div class="dpad-hat"></div>
+                    <div class="zone z-u" data-btn="12" data-keys="ArrowUp,w"></div>
+                    <div class="zone z-d" data-btn="13" data-keys="ArrowDown,s"></div>
+                    <div class="zone z-l" data-btn="14" data-keys="ArrowLeft,a"></div>
+                    <div class="zone z-r" data-btn="15" data-keys="ArrowRight,d"></div>
+                    
+                    <div class="zone z-ul" data-btns="12,14" data-keys="ArrowUp,ArrowLeft,w,a"></div>
+                    <div class="zone z-ur" data-btns="12,15" data-keys="ArrowUp,ArrowRight,w,d"></div>
+                    <div class="zone z-dl" data-btns="13,14" data-keys="ArrowDown,ArrowLeft,s,a"></div>
+                    <div class="zone z-dr" data-btns="13,15" data-keys="ArrowDown,ArrowRight,s,d"></div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-cluster">
+                    <div class="btn btn-y" data-btn="3" data-keys="i">Y</div>
+                    <div class="btn btn-x" data-btn="2" data-keys="j">X</div>
+                    <div class="btn btn-b" data-btn="1" data-keys="Escape,Shift">B</div>
+                    <div class="btn btn-a" data-btn="0" data-keys="Enter, ">A</div>
+                </div>
+            </div>
+
+            <div class="menu-row">
+                <div class="menu-btn" data-btn="8" data-keys="Tab"></div>
+                <div class="menu-btn" data-btn="9" data-keys="p"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * VIRTUAL GAMEPAD STATE
+         */
+        const virtualGamepad = {
+            id: "Handheld Virtual Controller",
+            index: 0,
+            connected: true,
+            timestamp: performance.now(),
+            mapping: "standard",
+            axes: [0, 0, 0, 0],
+            buttons: Array(17).fill(0).map(() => ({ pressed: false, touched: false, value: 0 }))
+        };
+
+        // Inject Virtual Gamepad into Navigator
+        navigator.getGamepads = () => [virtualGamepad, null, null, null];
+
+        function triggerConnection() {
+            try {
+                const event = new Event('gamepadconnected');
+                Object.defineProperty(event, 'gamepad', { value: virtualGamepad, enumerable: true });
+                window.dispatchEvent(event);
+            } catch (e) {}
+        }
+
+        /**
+         * KEYBOARD BRIDGE
+         * Sends keyboard events using safe methods for cross-origin iframes
+         */
+        function sendKey(key, type) {
+            const iframe = document.getElementById('game-iframe');
+            if (!iframe.contentWindow) return;
+            
+            const eventData = {
+                type: 'keyboard-bridge',
+                keyAction: type,
+                key: key,
+                code: key.length === 1 ? `Key${key.toUpperCase()}` : key
+            };
+
+            // Attempt 1: Safe postMessage (Works if the iframe game is programmed to listen for it)
+            iframe.contentWindow.postMessage(eventData, "*");
+
+            // Attempt 2: Direct dispatch (Wrapped in try-catch to prevent SecurityError crash)
+            try {
+                if (iframe.contentWindow.dispatchEvent) {
+                    const kbEvent = new KeyboardEvent(type, {
+                        key: key,
+                        code: eventData.code,
+                        bubbles: true,
+                        cancelable: true
+                    });
+                    iframe.contentWindow.dispatchEvent(kbEvent);
+                }
+            } catch (err) {
+                // Silently fail if cross-origin policy prevents direct dispatch.
+                // The Gamepad API layer will still work for games that support it.
+            }
+        }
+
+        // --- Logic ---
+        const iframe = document.getElementById('game-iframe');
+        const overlay = document.getElementById('settings-overlay');
+        const urlInput = document.getElementById('url-input');
+
+        function toggleSettings() {
+            overlay.style.display = overlay.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        function saveSettings() {
+            const url = urlInput.value || 'https://www.google.com/logos/2010/pacman10-i.html';
+            iframe.src = url;
+            localStorage.setItem('vb_url_v2', url);
+            toggleSettings();
+            setTimeout(triggerConnection, 1000);
+        }
+
+        function handleInput(el, isPressed) {
+            const btnIdx = el.getAttribute('data-btn');
+            const btnsIdx = el.getAttribute('data-btns');
+            const keys = el.getAttribute('data-keys')?.split(',') || [];
+
+            const apply = (idx) => {
+                const i = parseInt(idx);
+                virtualGamepad.buttons[i].pressed = isPressed;
+                virtualGamepad.buttons[i].value = isPressed ? 1 : 0;
+            };
+
+            if (btnIdx) apply(btnIdx);
+            if (btnsIdx) btnsIdx.split(',').forEach(apply);
+
+            // Key Bridge
+            keys.forEach(k => sendKey(k, isPressed ? 'keydown' : 'keyup'));
+
+            // UI Feedback
+            if (isPressed) {
+                el.classList.add('active');
+                if (el.classList.contains('zone')) {
+                    const hat = document.querySelector('.dpad-hat');
+                    if (el.classList.contains('z-u')) hat.style.transform = 'translate(-50%, -58%) rotateX(15deg)';
+                    if (el.classList.contains('z-d')) hat.style.transform = 'translate(-50%, -42%) rotateX(-15deg)';
+                    if (el.classList.contains('z-l')) hat.style.transform = 'translate(-58%, -50%) rotateY(-15deg)';
+                    if (el.classList.contains('z-r')) hat.style.transform = 'translate(-42%, -50%) rotateY(15deg)';
+                }
+            } else {
+                el.classList.remove('active');
+                if (el.classList.contains('zone')) {
+                    document.querySelector('.dpad-hat').style.transform = 'translate(-50%, -50%)';
+                }
+            }
+            virtualGamepad.timestamp = performance.now();
+        }
+
+        // Setup Event Listeners
+        const allButtons = document.querySelectorAll('[data-btn], [data-btns]');
+        allButtons.forEach(btn => {
+            const press = (e) => { e.preventDefault(); handleInput(btn, true); };
+            const release = (e) => { e.preventDefault(); handleInput(btn, false); };
+            
+            btn.addEventListener('touchstart', press, {passive: false});
+            btn.addEventListener('touchend', release, {passive: false});
+            btn.addEventListener('mousedown', press);
+        });
+
+        window.addEventListener('mouseup', () => {
+            allButtons.forEach(btn => handleInput(btn, false));
+        });
+
+        window.onload = () => {
+            urlInput.value = localStorage.getItem('vb_url_v2') || '';
+            saveSettings();
+            
+            const init = () => {
+                triggerConnection();
+                document.body.removeEventListener('touchstart', init);
+                document.body.removeEventListener('mousedown', init);
+            };
+            document.body.addEventListener('touchstart', init);
+            document.body.addEventListener('mousedown', init);
+        };
+    </script>
+</body>
+</html>
