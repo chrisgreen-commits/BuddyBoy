@@ -14,13 +14,9 @@
             --accent-color: #3a3a3c;
         }
 
-        /* Prevent all selection and system gestures */
         * {
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            user-select: none;
         }
 
         body {
@@ -34,72 +30,71 @@
             width: 100vw;
             overflow: hidden;
             font-family: -apple-system, system-ui, sans-serif;
+            user-select: none;
             touch-action: none;
         }
 
+        /* 9:16 Mobile Aspect Ratio Container */
+        /* width = smallest of: full viewport width, viewport-height scaled to 9:16, or 500px cap */
         .viewport-wrapper {
             position: relative;
-            width: 100%;
-            height: 100%;
+            width: min(100vw, calc(100vh * 9 / 16), 500px);
+            aspect-ratio: 9 / 16;
             background: var(--body-color);
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
         }
 
-        /* Top Screen Section - Exactly 60% HEIGHT */
+        /* Top Screen Section - 60% HEIGHT */
         .screen-section {
             width: 100%;
-            flex: 0 0 60%; 
+            flex: 0 0 60%;
             background: #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             position: relative;
+            overflow: hidden; /* clips iframe in Crop mode */
             z-index: 10;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            overflow: hidden;
         }
 
+        /* Iframe is positioned absolutely and scaled via JS */
         #game-iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
             border: none;
             background: #000;
-            width: 100%;
-            height: 100%;
-            /* Fixed Full Crop centered behavior */
-            object-fit: cover;
-            transform: scale(1.02); /* Slight scale to hide potential scrollbars/edges */
-            pointer-events: auto;
+            transform-origin: top left;
         }
 
-        /* Controls Section - Exactly 40% HEIGHT */
+        /* Controls Section - 40% HEIGHT */
         .controls-section {
-            flex: 0 0 40%;
+            flex: 1;
             display: flex;
             flex-direction: column;
-            padding: 10px 20px env(safe-area-inset-bottom);
-            justify-content: space-around;
+            padding: 15px;
+            justify-content: space-between;
             background: linear-gradient(to bottom, #2c2c2e, #1c1c1e);
             border-top: 1px solid #3a3a3c;
             position: relative;
         }
 
+        /* Control Layout Grids */
         .main-controls {
             display: flex;
             justify-content: space-between;
             align-items: center;
             width: 100%;
+            margin-top: 10px;
         }
 
-        /* D-Pad with 8-way Visual Feedback */
+        /* D-Pad */
         .dpad-wrapper {
             position: relative;
-            width: clamp(110px, 32vw, 150px);
-            aspect-ratio: 1/1;
+            width: 140px;
+            height: 140px;
             background: #111;
             border-radius: 50%;
             box-shadow: inset 0 2px 8px rgba(0,0,0,0.8);
-            perspective: 500px;
         }
 
         .dpad-hat {
@@ -107,114 +102,127 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 85%;
-            height: 85%;
+            width: 120px;
+            height: 120px;
             background: radial-gradient(circle at 30% 30%, #444, #18181b);
             border-radius: 50%;
             clip-path: polygon(33% 0%, 67% 0%, 67% 33%, 100% 33%, 100% 67%, 67% 67%, 67% 100%, 33% 100%, 33% 67%, 0% 67%, 0% 33%, 33% 33%);
-            transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.1s ease;
             pointer-events: none;
-            z-index: 5;
         }
 
-        .zone { position: absolute; z-index: 20; }
-        .z-u  { width: 40%; height: 35%; top: 0; left: 30%; }
-        .z-d  { width: 40%; height: 35%; bottom: 0; left: 30%; }
-        .z-l  { width: 35%; height: 40%; left: 0; top: 30%; }
-        .z-r  { width: 35%; height: 40%; right: 0; top: 30%; }
-        .z-ul { width: 30%; height: 30%; top: 0; left: 0; }
-        .z-ur { width: 30%; height: 30%; top: 0; right: 0; }
-        .z-dl { width: 30%; height: 30%; bottom: 0; left: 0; }
-        .z-dr { width: 30%; height: 30%; bottom: 0; right: 0; }
+        .zone { position: absolute; width: 45px; height: 45px; z-index: 20; }
+        .z-u { top: 0; left: 47.5px; }
+        .z-d { bottom: 0; left: 47.5px; }
+        .z-l { left: 0; top: 47.5px; }
+        .z-r { right: 0; top: 47.5px; }
+        .z-ul { top: 5px; left: 5px; }
+        .z-ur { top: 5px; right: 5px; }
+        .z-dl { bottom: 5px; left: 5px; }
+        .z-dr { bottom: 5px; right: 5px; }
 
+        /* Buttons */
         .action-cluster {
             display: grid;
             grid-template-areas: ". y ." "x . b" ". a .";
-            gap: 8px;
-            width: clamp(110px, 32vw, 150px);
-            aspect-ratio: 1/1;
+            gap: 10px;
+            width: 140px;
+            height: 140px;
         }
 
         .btn {
-            width: 100%; height: 100%; background: #2c2c2e; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            color: white; font-weight: bold; box-shadow: 0 4px 0 #000;
-        }
-
-        .active {
-            transform: translateY(2px);
-            box-shadow: 0 2px 0 #000;
-            filter: brightness(1.3);
-        }
-
-        .shoulder-row { display: flex; justify-content: space-between; width: 100%; }
-        .shoulder-btn {
-            width: 32%; height: 36px; background: #1c1c1e; border-radius: 8px; border: 1px solid #3a3a3c;
-            color: #8e8e93; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 0.75rem;
-        }
-
-        .menu-row { display: flex; justify-content: center; align-items: center; gap: 20px; }
-        .menu-btn { width: 40px; height: 10px; background: #111; border-radius: 5px; border-bottom: 2px solid #444; }
-        
-        /* Turbo Button Styles */
-        .turbo-btn {
-            width: 44px;
-            height: 44px;
+            width: 45px;
+            height: 45px;
             background: #2c2c2e;
             border-radius: 50%;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            border: 1px solid #3a3a3c;
-            color: #ef4444;
-            font-size: 0.6rem;
-            font-weight: 800;
-            box-shadow: 0 2px 0 #000;
-            transition: all 0.2s ease;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 0 #000;
+            font-size: 1.1rem;
         }
-        .turbo-btn.active-turbo {
-            background: #ef4444;
-            color: #fff;
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
-            border-color: #f87171;
-        }
-        .turbo-val { font-size: 0.8rem; line-height: 1; }
 
-        /* SETTINGS OVERLAY */
+        .btn-y { grid-area: y; border: 1px solid #facc1555; }
+        .btn-x { grid-area: x; border: 1px solid #60a5fa55; }
+        .btn-b { grid-area: b; border: 1px solid #f8717155; }
+        .btn-a { grid-area: a; border: 1px solid #4ade8055; }
+
+        .active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #000;
+            filter: brightness(1.4);
+        }
+
+        /* Shoulder Row */
+        .shoulder-row {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .shoulder-btn {
+            width: 40%;
+            height: 35px;
+            background: #1c1c1e;
+            border-radius: 8px;
+            border: 1px solid #3a3a3c;
+            color: #8e8e93;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+
+        /* Menu/Utility */
+        .menu-row {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            padding-bottom: 5px;
+        }
+
+        .menu-btn {
+            width: 40px;
+            height: 10px;
+            background: #111;
+            border-radius: 5px;
+            border-bottom: 2px solid #444;
+        }
+
+        /* Settings */
         #settings-overlay {
             position: absolute;
             inset: 0;
-            background: rgba(10, 10, 12, 0.98);
+            background: rgba(0,0,0,0.95);
             z-index: 100;
             display: none;
             flex-direction: column;
-            padding: 30px 24px;
+            padding: 40px 20px;
             color: white;
-            overflow-y: auto;
-            user-select: text !important;
-            -webkit-user-select: text !important;
-            touch-action: auto !important;
         }
 
         .gear-icon {
-            position: absolute; top: 15px; right: 15px; z-index: 50; color: #ffffff;
-            background: rgba(0,0,0,0.5); border-radius: 50%; width: 44px; height: 44px;
-            display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
-            backdrop-filter: blur(8px);
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 50;
+            color: #8e8e93;
+            font-size: 1.2rem;
+            padding: 10px;
         }
 
-        .input-group { margin-bottom: 18px; }
-        label { display: block; font-size: 0.7rem; text-transform: uppercase; color: #8e8e93; margin-bottom: 6px; }
-        
-        .url-input-container { display: flex; gap: 8px; }
-
-        input { 
-            background: #2c2c2e; color: white; border: 1px solid #3a3a3c; padding: 12px; 
-            border-radius: 8px; width: 100%; user-select: text !important;
+        input {
+            background: #2c2c2e;
+            color: white;
+            border: 1px solid #3a3a3c;
+            padding: 12px;
+            border-radius: 8px;
+            width: 100%;
+            margin-bottom: 20px;
         }
-
-        .paste-btn { background: #3a3a3c; padding: 0 15px; border-radius: 8px; color: #fff; font-size: 0.8rem; }
     </style>
 </head>
 <body>
@@ -225,28 +233,45 @@
         </div>
 
         <div id="settings-overlay">
-            <h2 class="text-xl font-bold mb-6">Console Settings</h2>
-            
-            <div class="input-group">
-                <label>Game Source URL</label>
-                <div class="url-input-container">
-                    <input type="text" id="url-input" placeholder="https://game-site.com" autocomplete="off">
-                    <button onclick="pasteFromClipboard()" class="paste-btn">
-                        <i class="fas fa-paste"></i>
-                    </button>
-                </div>
+            <h2 class="text-xl font-bold mb-6">Device Setup</h2>
+            <label class="text-xs uppercase text-zinc-500 mb-1 block">Game URL</label>
+            <input type="text" id="url-input" placeholder="Paste URL here...">
+
+            <label class="text-xs uppercase text-zinc-500 mb-1 block">View Mode</label>
+            <div class="flex gap-2 mb-4">
+                <button id="mode-btn-original" onclick="setMode('original')" class="flex-1 py-2 rounded-lg font-bold text-sm">Original</button>
+                <button id="mode-btn-crop" onclick="setMode('crop')" class="flex-1 py-2 rounded-lg font-bold text-sm">Crop</button>
             </div>
 
-            <div class="mt-2 flex flex-col gap-3">
-                <button onclick="saveSettings()" class="bg-blue-600 py-4 rounded-xl font-bold text-lg">Apply & Restart</button>
-                <button onclick="toggleSettings()" class="text-zinc-500 py-2">Back to Game</button>
+            <label class="text-xs uppercase text-zinc-500 mb-1 block">Game Aspect Ratio</label>
+            <div class="flex gap-2 mb-4">
+                <button id="ar-btn-169" onclick="setAspectRatio(16,9)" class="flex-1 py-2 rounded-lg font-bold text-sm">16:9</button>
+                <button id="ar-btn-43" onclick="setAspectRatio(4,3)" class="flex-1 py-2 rounded-lg font-bold text-sm">4:3</button>
+            </div>
+
+            <div class="bg-zinc-800 p-4 rounded-lg mb-6 text-sm text-zinc-400">
+                <p class="mb-2"><i class="fas fa-keyboard mr-2"></i> <strong>Compatibility Mode:</strong></p>
+                <p class="mb-4 text-xs">If a game doesn't respond to touches, it likely blocks external scripts due to security (Cross-Origin). Gamepad API is usually the most reliable method for such games.</p>
+                <p class="mb-2"><strong>Key Mapping:</strong></p>
+                <ul class="list-disc ml-5 space-y-1">
+                    <li>DPAD = Arrow Keys / WASD</li>
+                    <li>A = Space / Enter</li>
+                    <li>B = Esc / Shift</li>
+                </ul>
+            </div>
+
+            <div class="mt-auto flex flex-col gap-3">
+                <button onclick="saveSettings()" class="bg-blue-600 py-4 rounded-xl font-bold">Launch Game</button>
+                <button onclick="toggleSettings()" class="text-zinc-400 py-2">Cancel</button>
             </div>
         </div>
 
+        <!-- 60% Screen -->
         <div class="screen-section">
-            <iframe id="game-iframe" src="about:blank" scrolling="no" allow="autoplay; gamepad"></iframe>
+            <iframe id="game-iframe" src="about:blank"></iframe>
         </div>
 
+        <!-- 40% Controls -->
         <div class="controls-section">
             <div class="shoulder-row">
                 <div class="shoulder-btn" data-btn="4" data-keys="q">L</div>
@@ -254,18 +279,21 @@
             </div>
 
             <div class="main-controls">
+                <!-- D-Pad -->
                 <div class="dpad-wrapper">
                     <div class="dpad-hat"></div>
-                    <div class="zone z-u" data-btn="12" data-keys="ArrowUp,w" data-tilt="up"></div>
-                    <div class="zone z-d" data-btn="13" data-keys="ArrowDown,s" data-tilt="down"></div>
-                    <div class="zone z-l" data-btn="14" data-keys="ArrowLeft,a" data-tilt="left"></div>
-                    <div class="zone z-r" data-btn="15" data-keys="ArrowRight,d" data-tilt="right"></div>
-                    <div class="zone z-ul" data-btns="12,14" data-keys="ArrowUp,ArrowLeft,w,a" data-tilt="up-left"></div>
-                    <div class="zone z-ur" data-btns="12,15" data-keys="ArrowUp,ArrowRight,w,d" data-tilt="up-right"></div>
-                    <div class="zone z-dl" data-btns="13,14" data-keys="ArrowDown,ArrowLeft,s,a" data-tilt="down-left"></div>
-                    <div class="zone z-dr" data-btns="13,15" data-keys="ArrowDown,ArrowRight,s,d" data-tilt="down-right"></div>
+                    <div class="zone z-u" data-btn="12" data-keys="ArrowUp,w"></div>
+                    <div class="zone z-d" data-btn="13" data-keys="ArrowDown,s"></div>
+                    <div class="zone z-l" data-btn="14" data-keys="ArrowLeft,a"></div>
+                    <div class="zone z-r" data-btn="15" data-keys="ArrowRight,d"></div>
+                    
+                    <div class="zone z-ul" data-btns="12,14" data-keys="ArrowUp,ArrowLeft,w,a"></div>
+                    <div class="zone z-ur" data-btns="12,15" data-keys="ArrowUp,ArrowRight,w,d"></div>
+                    <div class="zone z-dl" data-btns="13,14" data-keys="ArrowDown,ArrowLeft,s,a"></div>
+                    <div class="zone z-dr" data-btns="13,15" data-keys="ArrowDown,ArrowRight,s,d"></div>
                 </div>
 
+                <!-- Action Buttons -->
                 <div class="action-cluster">
                     <div class="btn btn-y" data-btn="3" data-keys="i">Y</div>
                     <div class="btn btn-x" data-btn="2" data-keys="j">X</div>
@@ -276,27 +304,27 @@
 
             <div class="menu-row">
                 <div class="menu-btn" data-btn="8" data-keys="Tab"></div>
-                <button class="turbo-btn" onclick="toggleTurbo()">
-                    <span>TURBO</span>
-                    <span class="turbo-val" id="turbo-display">OFF</span>
-                </button>
                 <div class="menu-btn" data-btn="9" data-keys="p"></div>
             </div>
         </div>
     </div>
 
     <script>
+        /**
+         * VIRTUAL GAMEPAD STATE
+         */
         const virtualGamepad = {
             id: "Handheld Virtual Controller",
-            index: 0, connected: true, timestamp: performance.now(), mapping: "standard",
+            index: 0,
+            connected: true,
+            timestamp: performance.now(),
+            mapping: "standard",
             axes: [0, 0, 0, 0],
             buttons: Array(17).fill(0).map(() => ({ pressed: false, touched: false, value: 0 }))
         };
 
+        // Inject Virtual Gamepad into Navigator
         navigator.getGamepads = () => [virtualGamepad, null, null, null];
-
-        let turboLevel = 0; // 0, 2, 4
-        let turboInterval = null;
 
         function triggerConnection() {
             try {
@@ -306,69 +334,109 @@
             } catch (e) {}
         }
 
-        async function pasteFromClipboard() {
-            try {
-                const text = await navigator.clipboard.readText();
-                if (text) document.getElementById('url-input').value = text;
-            } catch (err) {
-                document.getElementById('url-input').focus();
-            }
-        }
-
-        function toggleTurbo() {
-            const display = document.getElementById('turbo-display');
-            const btn = document.querySelector('.turbo-btn');
-            
-            if (turboLevel === 0) turboLevel = 2;
-            else if (turboLevel === 2) turboLevel = 4;
-            else turboLevel = 0;
-
-            if (turboLevel > 0) {
-                display.innerText = turboLevel + 'X';
-                btn.classList.add('active-turbo');
-                startTurboLoop();
-            } else {
-                display.innerText = 'OFF';
-                btn.classList.remove('active-turbo');
-                stopTurboLoop();
-            }
-        }
-
-        function startTurboLoop() {
-            stopTurboLoop();
-            // Turbo works by rapid-firing interaction events that often force browser loops to wake up
-            // or by triggering emulators that listen for high frequency pulses.
-            turboInterval = setInterval(() => {
-                const iframe = document.getElementById('game-iframe');
-                if (iframe.contentWindow) {
-                    iframe.contentWindow.postMessage({ type: 'turbo-pulse' }, "*");
-                    // Also fire a dummy empty event to keep the process priority high
-                    iframe.focus();
-                }
-            }, 1000 / (60 * turboLevel));
-        }
-
-        function stopTurboLoop() {
-            if (turboInterval) clearInterval(turboInterval);
-        }
-
+        /**
+         * KEYBOARD BRIDGE
+         * Sends keyboard events using safe methods for cross-origin iframes
+         */
         function sendKey(key, type) {
             const iframe = document.getElementById('game-iframe');
             if (!iframe.contentWindow) return;
-            iframe.focus();
+            
+            const eventData = {
+                type: 'keyboard-bridge',
+                keyAction: type,
+                key: key,
+                code: key.length === 1 ? `Key${key.toUpperCase()}` : key
+            };
+
+            // Attempt 1: Safe postMessage (Works if the iframe game is programmed to listen for it)
+            iframe.contentWindow.postMessage(eventData, "*");
+
+            // Attempt 2: Direct dispatch (Wrapped in try-catch to prevent SecurityError crash)
             try {
-                iframe.contentWindow.postMessage({ type: 'keyboard-bridge', keyAction: type, key: key }, "*");
                 if (iframe.contentWindow.dispatchEvent) {
                     const kbEvent = new KeyboardEvent(type, {
                         key: key,
-                        code: key.length === 1 ? `Key${key.toUpperCase()}` : key,
-                        bubbles: true, cancelable: true
+                        code: eventData.code,
+                        bubbles: true,
+                        cancelable: true
                     });
                     iframe.contentWindow.dispatchEvent(kbEvent);
                 }
-            } catch (err) {}
+            } catch (err) {
+                // Silently fail if cross-origin policy prevents direct dispatch.
+                // The Gamepad API layer will still work for games that support it.
+            }
         }
 
+        // --- View Mode & Aspect Ratio ---
+        let currentMode = localStorage.getItem('vb_mode') || 'original';
+        let gameAR = JSON.parse(localStorage.getItem('vb_ar') || '{"w":16,"h":9}');
+        const VIRTUAL_W = 1280; // base virtual resolution width
+
+        function applyViewMode() {
+            const screen = document.querySelector('.screen-section');
+            const W = screen.clientWidth;
+            const H = screen.clientHeight;
+            if (!W || !H) return;
+
+            const VW = VIRTUAL_W;
+            const VH = Math.round(VIRTUAL_W * gameAR.h / gameAR.w);
+
+            iframe.style.width  = VW + 'px';
+            iframe.style.height = VH + 'px';
+
+            let scale, left, top;
+            if (currentMode === 'original') {
+                // Fit by width — height scales proportionally, black bars top/bottom if short
+                scale = W / VW;
+                left  = 0;
+                top   = (H - VH * scale) / 2;
+            } else {
+                // Fit by height — width scales proportionally, sides cropped
+                scale = H / VH;
+                left  = (W - VW * scale) / 2;
+                top   = 0;
+            }
+
+            iframe.style.transform       = `scale(${scale})`;
+            iframe.style.transformOrigin = 'top left';
+            iframe.style.left            = left + 'px';
+            iframe.style.top             = top  + 'px';
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            localStorage.setItem('vb_mode', mode);
+            updateModeButtons();
+            applyViewMode();
+        }
+
+        function setAspectRatio(w, h) {
+            gameAR = { w, h };
+            localStorage.setItem('vb_ar', JSON.stringify(gameAR));
+            updateARButtons();
+            applyViewMode();
+        }
+
+        function updateModeButtons() {
+            document.getElementById('mode-btn-original').className =
+                `flex-1 py-2 rounded-lg font-bold text-sm ${currentMode === 'original' ? 'bg-blue-600 text-white' : 'bg-zinc-700 text-zinc-300'}`;
+            document.getElementById('mode-btn-crop').className =
+                `flex-1 py-2 rounded-lg font-bold text-sm ${currentMode === 'crop' ? 'bg-blue-600 text-white' : 'bg-zinc-700 text-zinc-300'}`;
+        }
+
+        function updateARButtons() {
+            const is169 = gameAR.w === 16 && gameAR.h === 9;
+            document.getElementById('ar-btn-169').className =
+                `flex-1 py-2 rounded-lg font-bold text-sm ${is169 ? 'bg-blue-600 text-white' : 'bg-zinc-700 text-zinc-300'}`;
+            document.getElementById('ar-btn-43').className =
+                `flex-1 py-2 rounded-lg font-bold text-sm ${!is169 ? 'bg-blue-600 text-white' : 'bg-zinc-700 text-zinc-300'}`;
+        }
+
+        window.addEventListener('resize', applyViewMode);
+
+        // --- Logic ---
         const iframe = document.getElementById('game-iframe');
         const overlay = document.getElementById('settings-overlay');
         const urlInput = document.getElementById('url-input');
@@ -380,17 +448,15 @@
         function saveSettings() {
             const url = urlInput.value || 'https://www.google.com/logos/2010/pacman10-i.html';
             iframe.src = url;
-            localStorage.setItem('vb_url_v6', url);
+            localStorage.setItem('vb_url_v2', url);
             toggleSettings();
             setTimeout(triggerConnection, 1000);
+            setTimeout(applyViewMode, 100);
         }
 
         function handleInput(el, isPressed) {
-            if (overlay.style.display === 'flex') return;
-            
             const btnIdx = el.getAttribute('data-btn');
             const btnsIdx = el.getAttribute('data-btns');
-            const tiltMode = el.getAttribute('data-tilt');
             const keys = el.getAttribute('data-keys')?.split(',') || [];
 
             const apply = (idx) => {
@@ -402,50 +468,49 @@
             if (btnIdx) apply(btnIdx);
             if (btnsIdx) btnsIdx.split(',').forEach(apply);
 
+            // Key Bridge
             keys.forEach(k => sendKey(k, isPressed ? 'keydown' : 'keyup'));
 
+            // UI Feedback
             if (isPressed) {
                 el.classList.add('active');
-                if (tiltMode) {
+                if (el.classList.contains('zone')) {
                     const hat = document.querySelector('.dpad-hat');
-                    let tx = -50, ty = -50, rx = 0, ry = 0;
-                    if (tiltMode.includes('up')) { ty = -58; rx = 10; }
-                    if (tiltMode.includes('down')) { ty = -42; rx = -10; }
-                    if (tiltMode.includes('left')) { tx = -58; ry = -10; }
-                    if (tiltMode.includes('right')) { tx = -42; ry = 10; }
-                    hat.style.transform = `translate(${tx}%, ${ty}%) rotateX(${rx}deg) rotateY(${ry}deg)`;
+                    if (el.classList.contains('z-u')) hat.style.transform = 'translate(-50%, -58%) rotateX(15deg)';
+                    if (el.classList.contains('z-d')) hat.style.transform = 'translate(-50%, -42%) rotateX(-15deg)';
+                    if (el.classList.contains('z-l')) hat.style.transform = 'translate(-58%, -50%) rotateY(-15deg)';
+                    if (el.classList.contains('z-r')) hat.style.transform = 'translate(-42%, -50%) rotateY(15deg)';
                 }
             } else {
                 el.classList.remove('active');
-                if (tiltMode) {
+                if (el.classList.contains('zone')) {
                     document.querySelector('.dpad-hat').style.transform = 'translate(-50%, -50%)';
                 }
             }
             virtualGamepad.timestamp = performance.now();
         }
 
+        // Setup Event Listeners
         const allButtons = document.querySelectorAll('[data-btn], [data-btns]');
         allButtons.forEach(btn => {
-            const press = (e) => { 
-                e.preventDefault(); 
-                e.stopPropagation();
-                handleInput(btn, true); 
-            };
-            const release = (e) => { 
-                e.preventDefault(); 
-                e.stopPropagation();
-                handleInput(btn, false); 
-            };
+            const press = (e) => { e.preventDefault(); handleInput(btn, true); };
+            const release = (e) => { e.preventDefault(); handleInput(btn, false); };
+            
             btn.addEventListener('touchstart', press, {passive: false});
             btn.addEventListener('touchend', release, {passive: false});
             btn.addEventListener('mousedown', press);
         });
 
-        window.addEventListener('mouseup', () => allButtons.forEach(btn => handleInput(btn, false)));
+        window.addEventListener('mouseup', () => {
+            allButtons.forEach(btn => handleInput(btn, false));
+        });
 
         window.onload = () => {
-            urlInput.value = localStorage.getItem('vb_url_v6') || '';
+            urlInput.value = localStorage.getItem('vb_url_v2') || '';
+            updateModeButtons();
+            updateARButtons();
             saveSettings();
+            setTimeout(applyViewMode, 150);
             
             const init = () => {
                 triggerConnection();
