@@ -554,9 +554,10 @@ function handleBtnInput(el, pressed) {
 
     if (pressed) {
         if (doubleModeActive) {
-            // Simulate double-tap: keyup then keydown 20ms later
-            keys.forEach(k => sendKey(k, 'keyup'));
-            setTimeout(() => keys.forEach(k => sendKey(k, 'keydown')), 20);
+            // Full double-tap cycle: keydown → keyup → keydown (held until finger lifts)
+            keys.forEach(k => sendKey(k, 'keydown'));
+            setTimeout(() => keys.forEach(k => sendKey(k, 'keyup')),   60);
+            setTimeout(() => keys.forEach(k => sendKey(k, 'keydown')), 120);
         } else {
             keys.forEach(k => sendKey(k, 'keydown'));
         }
