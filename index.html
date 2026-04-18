@@ -331,8 +331,12 @@
                 <input class="text-input key-input" id="edit-key-x" placeholder="z" style="margin-bottom:0">
                 <span class="key-label" style="color:#facc15">Y</span>
                 <input class="text-input key-input" id="edit-key-y" placeholder="x" style="margin-bottom:0">
+                <span class="key-label" style="color:#d4d4d8">L</span>
+                <input class="text-input key-input" id="edit-key-l" placeholder="q" style="margin-bottom:0">
+                <span class="key-label" style="color:#d4d4d8">R</span>
+                <input class="text-input key-input" id="edit-key-r" placeholder="e" style="margin-bottom:0">
                 <span></span>
-                <span class="key-hint">Examples: z, x, Enter, Space, Escape, Shift, ArrowUp, 1</span>
+                <span class="key-hint">Examples: z, x, q, e, Enter, Space, Escape, Shift, ArrowUp, 1</span>
             </div>
 
             <div style="display:flex;gap:8px;margin-top:auto;padding-top:14px">
@@ -353,8 +357,8 @@
     <!-- Controls (40%) -->
     <div class="controls-section">
         <div class="shoulder-row">
-            <div class="shoulder-btn" data-btn="4" data-keys="q">L</div>
-            <div class="shoulder-btn" data-btn="5" data-keys="e">R</div>
+            <div class="shoulder-btn" id="btn-l" data-btn="4" data-keys="q">L</div>
+            <div class="shoulder-btn" id="btn-r" data-btn="5" data-keys="e">R</div>
         </div>
 
         <div class="main-controls">
@@ -529,26 +533,21 @@ function applyDirs(want) {
         if (!activeDirs.has(dir)) {
             const m = DIR_MAP[dir];
             if (doubleModeActive) {
+                // Bounce: game sees keyup → keydown = double tap
                 m.keys.forEach(k => sendKey(k, 'keyup'));
                 setTimeout(() => m.keys.forEach(k => sendKey(k, 'keydown')), 20);
             } else {
                 m.keys.forEach(k => sendKey(k, 'keydown'));
             }
-            virtualGamepad.buttons[m.btn].pressed = true;
-            virtualGamepad.buttons[m.btn].value   = 1;
             activeDirs.add(dir);
         }
     }
     for (const dir of [...activeDirs]) {
         if (!want.has(dir)) {
-            const m = DIR_MAP[dir];
-            m.keys.forEach(k => sendKey(k, 'keyup'));
-            virtualGamepad.buttons[m.btn].pressed = false;
-            virtualGamepad.buttons[m.btn].value   = 0;
+            DIR_MAP[dir].keys.forEach(k => sendKey(k, 'keyup'));
             activeDirs.delete(dir);
         }
     }
-    virtualGamepad.timestamp = performance.now();
     try { document.getElementById('game-iframe').contentWindow.focus(); } catch(e) {}
 }
 
@@ -664,7 +663,7 @@ function addCart(url) {
     carts.unshift({
         id: Date.now().toString(36) + Math.random().toString(36).slice(2,5),
         url, name: nameOf(url), art: '',
-        keys: { a:'Enter,Space', b:'Escape,Shift', x:'z', y:'x' }
+        keys: { a:'Enter,Space', b:'Escape,Shift', x:'z', y:'x', l:'q', r:'e' }
     });
     saveCarts(carts);
 }
@@ -673,7 +672,8 @@ function deleteCart(id) { saveCarts(loadCarts().filter(c=>c.id!==id)); renderLib
 
 function applyCartKeys(cart) {
     if (!cart?.keys) return;
-    [['btn-a',cart.keys.a],['btn-b',cart.keys.b],['btn-x',cart.keys.x],['btn-y',cart.keys.y]].forEach(([id,k]) => {
+    [['btn-a',cart.keys.a],['btn-b',cart.keys.b],['btn-x',cart.keys.x],['btn-y',cart.keys.y],
+     ['btn-l',cart.keys.l],['btn-r',cart.keys.r]].forEach(([id,k]) => {
         if (k) { const el=document.getElementById(id); if(el) el.setAttribute('data-keys',k); }
     });
 }
@@ -725,6 +725,8 @@ function openCartEditor(id) {
     document.getElementById('edit-key-b').value = cart.keys?.b || 'Escape,Shift';
     document.getElementById('edit-key-x').value = cart.keys?.x || 'z';
     document.getElementById('edit-key-y').value = cart.keys?.y || 'x';
+    document.getElementById('edit-key-l').value = cart.keys?.l || 'q';
+    document.getElementById('edit-key-r').value = cart.keys?.r || 'e';
     document.getElementById('cart-editor').style.display = 'flex';
 }
 function closeCartEditor() { editingId = null; document.getElementById('cart-editor').style.display = 'none'; }
@@ -740,6 +742,8 @@ function saveCartEdit() {
             b: document.getElementById('edit-key-b').value.trim() || 'Escape,Shift',
             x: document.getElementById('edit-key-x').value.trim() || 'z',
             y: document.getElementById('edit-key-y').value.trim() || 'x',
+            l: document.getElementById('edit-key-l').value.trim() || 'q',
+            r: document.getElementById('edit-key-r').value.trim() || 'e',
         };
         saveCarts(carts);
     }
