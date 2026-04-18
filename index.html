@@ -107,8 +107,13 @@
             background: radial-gradient(circle at 30% 30%, #444, #18181b);
             border-radius: 50%;
             clip-path: polygon(33% 0%, 67% 0%, 67% 33%, 100% 33%, 100% 67%, 67% 67%, 67% 100%, 33% 100%, 33% 67%, 0% 67%, 0% 33%, 33% 33%);
-            transition: transform 0.1s ease;
+            transition: transform 0.08s ease;
             pointer-events: none;
+        }
+
+        .double-tap-flash {
+            filter: brightness(2.5) !important;
+            transition: filter 0.08s ease !important;
         }
 
         .zone { position: absolute; width: 45px; height: 45px; z-index: 20; }
@@ -260,6 +265,12 @@
                 </ul>
             </div>
 
+            <label class="text-xs uppercase text-zinc-500 mb-1 block">Performance</label>
+            <div class="flex gap-2 mb-4">
+                <button id="speed-fix-btn" onclick="toggleSpeedFix()" class="flex-1 py-2 rounded-lg font-bold text-sm bg-zinc-700 text-zinc-300">Speed Fix: OFF</button>
+            </div>
+            <p class="text-xs text-zinc-500 mb-4 -mt-2">Prevents browser from throttling game frame rate. Enable if game runs in slow motion.</p>
+
             <div class="mt-auto flex flex-col gap-3">
                 <button onclick="saveSettings()" class="bg-blue-600 py-4 rounded-xl font-bold">Launch Game</button>
                 <button onclick="toggleSettings()" class="text-zinc-400 py-2">Cancel</button>
@@ -323,7 +334,6 @@
             buttons: Array(17).fill(0).map(() => ({ pressed: false, touched: false, value: 0 }))
         };
 
-        // Inject Virtual Gamepad into Navigator
         navigator.getGamepads = () => [virtualGamepad, null, null, null];
 
         function triggerConnection() {
@@ -336,69 +346,138 @@
 
         /**
          * KEYBOARD BRIDGE
-         * Sends keyboard events using safe methods for cross-origin iframes
          */
         function sendKey(key, type) {
-            const iframe = document.getElementById('game-iframe');
-            if (!iframe.contentWindow) return;
-            
+            const iframeEl = document.getElementById('game-iframe');
+            if (!iframeEl.contentWindow) return;
             const eventData = {
-                type: 'keyboard-bridge',
-                keyAction: type,
-                key: key,
+                type: 'keyboard-bridge', keyAction: type, key: key,
                 code: key.length === 1 ? `Key${key.toUpperCase()}` : key
             };
-
-            // Attempt 1: Safe postMessage (Works if the iframe game is programmed to listen for it)
-            iframe.contentWindow.postMessage(eventData, "*");
-
-            // Attempt 2: Direct dispatch (Wrapped in try-catch to prevent SecurityError crash)
+            iframeEl.contentWindow.postMessage(eventData, "*");
             try {
-                if (iframe.contentWindow.dispatchEvent) {
+                if (iframeEl.contentWindow.dispatchEvent) {
                     const kbEvent = new KeyboardEvent(type, {
-                        key: key,
-                        code: eventData.code,
-                        bubbles: true,
-                        cancelable: true
+                        key, code: eventData.code, bubbles: true, cancelable: true
                     });
-                    iframe.contentWindow.dispatchEvent(kbEvent);
+                    iframeEl.contentWindow.dispatchEvent(kbEvent);
                 }
-            } catch (err) {
-                // Silently fail if cross-origin policy prevents direct dispatch.
-                // The Gamepad API layer will still work for games that support it.
+            } catch (err) {}
+        }
+
+        // ============================================================
+        // D-PAD: Active zone set → accurate composite hat positioning
+        // ============================================================
+        const activeZones = new Set();
+
+        function updateHat() {
+            const hat = document.querySelector('.dpad-hat');
+            const az = activeZones;
+            const hasUp    = az.has('z-u') || az.has('z-ul') || az.has('z-ur');
+            const hasDown  = az.has('z-d') || az.has('z-dl') || az.has('z-dr');
+            const hasLeft  = az.has('z-l') || az.has('z-ul') || az.has('z-dl');
+            const hasRight = az.has('z-r') || az.has('z-ur') || az.has('z-dr');
+
+            let tx = -50, ty = -50;
+            if (hasUp)    ty = -60;
+            if (hasDown)  ty = -40;
+            if (hasLeft)  tx = -60;
+            if (hasRight) tx = -40;
+
+            hat.style.transform = `translate(${tx}%, ${ty}%)`;
+        }
+
+        // ============================================================
+        // DOUBLE-TAP DETECTION
+        // Fires a keyup→keydown cycle on the second tap so the game
+        // registers two distinct presses (e.g. run triggers).
+        // ============================================================
+        const doubleTapTracker = {};
+        const DOUBLE_TAP_MS = 280;
+
+        function checkDoubleTap(id) {
+            const now = Date.now();
+            const prev = doubleTapTracker[id] || 0;
+            doubleTapTracker[id] = now;
+            // Must be fast enough to be intentional, not a same-event re-fire
+            return (now - prev) < DOUBLE_TAP_MS && (now - prev) > 40;
+        }
+
+        // ============================================================
+        // SPEED FIX: Silent AudioContext prevents browser from
+        // throttling requestAnimationFrame inside the game iframe.
+        // Browsers never throttle rAF in tabs with active audio.
+        // ============================================================
+        let stayAliveCtx = null;
+        let speedFixEnabled = localStorage.getItem('vb_speedfix') === '1';
+
+        function toggleSpeedFix() {
+            setSpeedFix(!speedFixEnabled);
+        }
+
+        function setSpeedFix(enabled) {
+            speedFixEnabled = enabled;
+            localStorage.setItem('vb_speedfix', enabled ? '1' : '0');
+            updateSpeedFixButton();
+            if (enabled) startStayAlive(); else stopStayAlive();
+        }
+
+        function startStayAlive() {
+            if (stayAliveCtx) return;
+            try {
+                const AC = window.AudioContext || window.webkitAudioContext;
+                stayAliveCtx = new AC();
+                const osc  = stayAliveCtx.createOscillator();
+                const gain = stayAliveCtx.createGain();
+                gain.gain.value = 0.00001; // inaudible
+                osc.connect(gain);
+                gain.connect(stayAliveCtx.destination);
+                osc.start();
+            } catch(e) {}
+        }
+
+        function stopStayAlive() {
+            if (stayAliveCtx) { stayAliveCtx.close(); stayAliveCtx = null; }
+        }
+
+        function updateSpeedFixButton() {
+            const btn = document.getElementById('speed-fix-btn');
+            if (!btn) return;
+            if (speedFixEnabled) {
+                btn.textContent = 'Speed Fix: ON';
+                btn.className = 'flex-1 py-2 rounded-lg font-bold text-sm bg-green-600 text-white';
+            } else {
+                btn.textContent = 'Speed Fix: OFF';
+                btn.className = 'flex-1 py-2 rounded-lg font-bold text-sm bg-zinc-700 text-zinc-300';
             }
         }
 
-        // --- View Mode & Aspect Ratio ---
+        // ============================================================
+        // VIEW MODE & ASPECT RATIO
+        // ============================================================
         let currentMode = localStorage.getItem('vb_mode') || 'original';
         let gameAR = JSON.parse(localStorage.getItem('vb_ar') || '{"w":16,"h":9}');
-        const VIRTUAL_W = 1280; // base virtual resolution width
+        const VIRTUAL_W = 1280;
 
         function applyViewMode() {
-            const screen = document.querySelector('.screen-section');
-            const W = screen.clientWidth;
-            const H = screen.clientHeight;
+            const screenEl = document.querySelector('.screen-section');
+            const W = screenEl.clientWidth;
+            const H = screenEl.clientHeight;
             if (!W || !H) return;
-
             const VW = VIRTUAL_W;
             const VH = Math.round(VIRTUAL_W * gameAR.h / gameAR.w);
-
             iframe.style.width  = VW + 'px';
             iframe.style.height = VH + 'px';
-
             let scale, left, top;
             if (currentMode === 'original') {
-                // Fit by width — height scales proportionally, black bars top/bottom if short
                 scale = W / VW;
                 left  = 0;
                 top   = (H - VH * scale) / 2;
             } else {
-                // Fit by height — width scales proportionally, sides cropped
                 scale = H / VH;
                 left  = (W - VW * scale) / 2;
                 top   = 0;
             }
-
             iframe.style.transform       = `scale(${scale})`;
             iframe.style.transformOrigin = 'top left';
             iframe.style.left            = left + 'px';
@@ -436,8 +515,10 @@
 
         window.addEventListener('resize', applyViewMode);
 
-        // --- Logic ---
-        const iframe = document.getElementById('game-iframe');
+        // ============================================================
+        // CORE LOGIC
+        // ============================================================
+        const iframe  = document.getElementById('game-iframe');
         const overlay = document.getElementById('settings-overlay');
         const urlInput = document.getElementById('url-input');
 
@@ -455,50 +536,66 @@
         }
 
         function handleInput(el, isPressed) {
-            const btnIdx = el.getAttribute('data-btn');
+            const btnIdx  = el.getAttribute('data-btn');
             const btnsIdx = el.getAttribute('data-btns');
-            const keys = el.getAttribute('data-keys')?.split(',') || [];
+            const keys    = el.getAttribute('data-keys')?.split(',').map(k => k.trim()).filter(Boolean) || [];
 
+            // Update virtual gamepad state
             const apply = (idx) => {
                 const i = parseInt(idx);
                 virtualGamepad.buttons[i].pressed = isPressed;
-                virtualGamepad.buttons[i].value = isPressed ? 1 : 0;
+                virtualGamepad.buttons[i].value   = isPressed ? 1 : 0;
             };
-
-            if (btnIdx) apply(btnIdx);
+            if (btnIdx)  apply(btnIdx);
             if (btnsIdx) btnsIdx.split(',').forEach(apply);
 
-            // Key Bridge
+            // Key bridge
             keys.forEach(k => sendKey(k, isPressed ? 'keydown' : 'keyup'));
 
-            // UI Feedback
-            if (isPressed) {
-                el.classList.add('active');
-                if (el.classList.contains('zone')) {
-                    const hat = document.querySelector('.dpad-hat');
-                    if (el.classList.contains('z-u')) hat.style.transform = 'translate(-50%, -58%) rotateX(15deg)';
-                    if (el.classList.contains('z-d')) hat.style.transform = 'translate(-50%, -42%) rotateX(-15deg)';
-                    if (el.classList.contains('z-l')) hat.style.transform = 'translate(-58%, -50%) rotateY(-15deg)';
-                    if (el.classList.contains('z-r')) hat.style.transform = 'translate(-42%, -50%) rotateY(15deg)';
+            // ---- D-Pad hat: track active zones, compute composite direction ----
+            if (el.classList.contains('zone')) {
+                const zoneKey = [...el.classList].find(c => c.startsWith('z-'));
+                if (zoneKey) {
+                    if (isPressed) activeZones.add(zoneKey);
+                    else           activeZones.delete(zoneKey);
                 }
-            } else {
-                el.classList.remove('active');
-                if (el.classList.contains('zone')) {
-                    document.querySelector('.dpad-hat').style.transform = 'translate(-50%, -50%)';
+                updateHat();
+            }
+
+            // ---- Double-tap detection ----
+            if (isPressed) {
+                const tapId = el.getAttribute('data-btn') || el.getAttribute('data-btns') ||
+                              [...el.classList].find(c => c.startsWith('z-')) || el.className;
+                if (checkDoubleTap(tapId)) {
+                    // Send keyup immediately, then keydown 20ms later — game sees two distinct presses
+                    keys.forEach(k => sendKey(k, 'keyup'));
+                    setTimeout(() => keys.forEach(k => sendKey(k, 'keydown')), 20);
+                    // Brief visual flash
+                    el.classList.add('double-tap-flash');
+                    setTimeout(() => el.classList.remove('double-tap-flash'), 120);
                 }
             }
+
+            // ---- Button press visual (non-zone buttons) ----
+            if (!el.classList.contains('zone')) {
+                if (isPressed) el.classList.add('active');
+                else           el.classList.remove('active');
+            }
+
+            // ---- Focus iframe to prevent rAF throttling ----
+            try { iframe.contentWindow.focus(); } catch(e) {}
+
             virtualGamepad.timestamp = performance.now();
         }
 
-        // Setup Event Listeners
+        // Event listeners
         const allButtons = document.querySelectorAll('[data-btn], [data-btns]');
         allButtons.forEach(btn => {
-            const press = (e) => { e.preventDefault(); handleInput(btn, true); };
+            const press   = (e) => { e.preventDefault(); handleInput(btn, true); };
             const release = (e) => { e.preventDefault(); handleInput(btn, false); };
-            
-            btn.addEventListener('touchstart', press, {passive: false});
-            btn.addEventListener('touchend', release, {passive: false});
-            btn.addEventListener('mousedown', press);
+            btn.addEventListener('touchstart', press,   { passive: false });
+            btn.addEventListener('touchend',   release, { passive: false });
+            btn.addEventListener('mousedown',  press);
         });
 
         window.addEventListener('mouseup', () => {
@@ -509,16 +606,18 @@
             urlInput.value = localStorage.getItem('vb_url_v2') || '';
             updateModeButtons();
             updateARButtons();
+            updateSpeedFixButton();
+            if (speedFixEnabled) startStayAlive();
             saveSettings();
             setTimeout(applyViewMode, 150);
-            
+
             const init = () => {
                 triggerConnection();
                 document.body.removeEventListener('touchstart', init);
-                document.body.removeEventListener('mousedown', init);
+                document.body.removeEventListener('mousedown',  init);
             };
             document.body.addEventListener('touchstart', init);
-            document.body.addEventListener('mousedown', init);
+            document.body.addEventListener('mousedown',  init);
         };
     </script>
 </body>
