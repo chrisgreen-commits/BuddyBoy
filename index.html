@@ -7,618 +7,800 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root {
-            --body-color: #1c1c1e;
-            --screen-bg: #000;
-            --button-color: #2c2c2e;
-            --accent-color: #3a3a3c;
-        }
-
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
+        :root { --body-color: #1c1c1e; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
-            background-color: #000;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
+            background: #000; margin: 0; padding: 0;
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; width: 100vw; overflow: hidden;
             font-family: -apple-system, system-ui, sans-serif;
-            user-select: none;
-            touch-action: none;
+            user-select: none; touch-action: none;
         }
-
-        /* 9:16 Mobile Aspect Ratio Container */
-        /* width = smallest of: full viewport width, viewport-height scaled to 9:16, or 500px cap */
         .viewport-wrapper {
             position: relative;
             width: min(100vw, calc(100vh * 9 / 16), 500px);
             aspect-ratio: 9 / 16;
             background: var(--body-color);
-            display: flex;
-            flex-direction: column;
+            display: flex; flex-direction: column;
             box-shadow: 0 0 50px rgba(0,0,0,0.8);
         }
-
-        /* Top Screen Section - 60% HEIGHT */
+        /* Screen */
         .screen-section {
-            width: 100%;
-            flex: 0 0 60%;
-            background: #000;
-            position: relative;
-            overflow: hidden; /* clips iframe in Crop mode */
-            z-index: 10;
+            width: 100%; flex: 0 0 60%;
+            background: #000; position: relative;
+            overflow: hidden; z-index: 10;
         }
-
-        /* Iframe is positioned absolutely and scaled via JS */
         #game-iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            border: none;
-            background: #000;
-            transform-origin: top left;
+            position: absolute; top: 0; left: 0;
+            border: none; background: #000; transform-origin: top left;
         }
-
-        /* Controls Section - 40% HEIGHT */
+        /* Controls */
         .controls-section {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 15px;
-            justify-content: space-between;
+            flex: 1; display: flex; flex-direction: column;
+            padding: 14px; justify-content: space-between;
             background: linear-gradient(to bottom, #2c2c2e, #1c1c1e);
-            border-top: 1px solid #3a3a3c;
-            position: relative;
+            border-top: 1px solid #3a3a3c; position: relative;
         }
-
-        /* Control Layout Grids */
         .main-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            margin-top: 10px;
+            display: flex; justify-content: space-between;
+            align-items: center; width: 100%; margin-top: 8px;
         }
-
         /* D-Pad */
         .dpad-wrapper {
-            position: relative;
-            width: 140px;
-            height: 140px;
-            background: #111;
-            border-radius: 50%;
+            position: relative; width: 130px; height: 130px;
+            background: #111; border-radius: 50%;
             box-shadow: inset 0 2px 8px rgba(0,0,0,0.8);
+            touch-action: none; flex-shrink: 0; cursor: pointer;
         }
-
         .dpad-hat {
-            position: absolute;
-            top: 50%;
-            left: 50%;
+            position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            width: 120px;
-            height: 120px;
+            width: 112px; height: 112px;
             background: radial-gradient(circle at 30% 30%, #444, #18181b);
             border-radius: 50%;
             clip-path: polygon(33% 0%, 67% 0%, 67% 33%, 100% 33%, 100% 67%, 67% 67%, 67% 100%, 33% 100%, 33% 67%, 0% 67%, 0% 33%, 33% 33%);
-            transition: transform 0.08s ease;
+            transition: transform 0.06s ease;
             pointer-events: none;
         }
-
-        .double-tap-flash {
-            filter: brightness(2.5) !important;
-            transition: filter 0.08s ease !important;
+        .dpad-tick { position: absolute; background: rgba(255,255,255,0.05); pointer-events: none; border-radius: 1px; }
+        .dpad-tick-v { width: 2px; height: 18px; left: calc(50% - 1px); }
+        .dpad-tick-h { height: 2px; width: 18px; top: calc(50% - 1px); }
+        .dpad-tick-t { top: 7px; } .dpad-tick-b { bottom: 7px; }
+        .dpad-tick-l { left: 7px; } .dpad-tick-r { right: 7px; }
+        /* Double button */
+        .double-btn {
+            width: 34px; height: 56px;
+            background: #1a1a1c; border-radius: 17px;
+            border: 1px solid #3a3a3c;
+            color: #6b6b70; font-size: 0.58rem; font-weight: 800;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 1px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
+            touch-action: none; flex-shrink: 0; cursor: pointer;
         }
-
-        .zone { position: absolute; width: 45px; height: 45px; z-index: 20; }
-        .z-u { top: 0; left: 47.5px; }
-        .z-d { bottom: 0; left: 47.5px; }
-        .z-l { left: 0; top: 47.5px; }
-        .z-r { right: 0; top: 47.5px; }
-        .z-ul { top: 5px; left: 5px; }
-        .z-ur { top: 5px; right: 5px; }
-        .z-dl { bottom: 5px; left: 5px; }
-        .z-dr { bottom: 5px; right: 5px; }
-
-        /* Buttons */
+        .double-btn .dbl-x { font-size: 0.8rem; line-height: 1; }
+        .double-btn.active {
+            background: #92400e; color: #fcd34d;
+            border-color: #d97706;
+            box-shadow: 0 0 10px rgba(245,158,11,0.35), 0 2px 6px rgba(0,0,0,0.5);
+        }
+        /* Action buttons */
         .action-cluster {
-            display: grid;
-            grid-template-areas: ". y ." "x . b" ". a .";
-            gap: 10px;
-            width: 140px;
-            height: 140px;
+            display: grid; grid-template-areas: ". y ." "x . b" ". a .";
+            gap: 9px; width: 130px; height: 130px; flex-shrink: 0;
         }
-
         .btn {
-            width: 45px;
-            height: 45px;
-            background: #2c2c2e;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            box-shadow: 0 4px 0 #000;
-            font-size: 1.1rem;
+            width: 42px; height: 42px; background: #2c2c2e; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: bold; box-shadow: 0 4px 0 #000;
+            font-size: 1rem; touch-action: none; cursor: pointer;
         }
-
         .btn-y { grid-area: y; border: 1px solid #facc1555; }
         .btn-x { grid-area: x; border: 1px solid #60a5fa55; }
         .btn-b { grid-area: b; border: 1px solid #f8717155; }
         .btn-a { grid-area: a; border: 1px solid #4ade8055; }
-
-        .active {
-            transform: translateY(3px);
-            box-shadow: 0 1px 0 #000;
-            filter: brightness(1.4);
-        }
-
-        /* Shoulder Row */
-        .shoulder-row {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-        }
-
+        .active { transform: translateY(3px); box-shadow: 0 1px 0 #000; filter: brightness(1.4); }
+        /* Shoulder */
+        .shoulder-row { display: flex; justify-content: space-between; width: 100%; }
         .shoulder-btn {
-            width: 40%;
-            height: 35px;
-            background: #1c1c1e;
-            border-radius: 8px;
-            border: 1px solid #3a3a3c;
-            color: #8e8e93;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
+            width: 40%; height: 33px; background: #1c1c1e; border-radius: 8px;
+            border: 1px solid #3a3a3c; color: #8e8e93; font-weight: bold;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem; touch-action: none; cursor: pointer;
         }
-
-        /* Menu/Utility */
-        .menu-row {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            padding-bottom: 5px;
-        }
-
+        /* Menu */
+        .menu-row { display: flex; justify-content: center; gap: 28px; padding-bottom: 4px; }
         .menu-btn {
-            width: 40px;
-            height: 10px;
-            background: #111;
-            border-radius: 5px;
-            border-bottom: 2px solid #444;
+            width: 38px; height: 10px; background: #111;
+            border-radius: 5px; border-bottom: 2px solid #444;
+            touch-action: none; cursor: pointer;
         }
-
-        /* Settings */
-        #settings-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(0,0,0,0.95);
-            z-index: 100;
-            display: none;
-            flex-direction: column;
-            padding: 40px 20px;
-            color: white;
-        }
-
+        /* Gear */
         .gear-icon {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            z-index: 50;
-            color: #8e8e93;
-            font-size: 1.2rem;
-            padding: 10px;
+            position: absolute; top: 14px; right: 14px; z-index: 50;
+            color: #8e8e93; font-size: 1.1rem; padding: 10px; cursor: pointer;
         }
-
-        input {
-            background: #2c2c2e;
-            color: white;
-            border: 1px solid #3a3a3c;
-            padding: 12px;
-            border-radius: 8px;
-            width: 100%;
-            margin-bottom: 20px;
+        /* ── Settings overlay ── */
+        #settings-overlay {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.97);
+            z-index: 100; display: none; flex-direction: column;
+            color: white; overflow: hidden;
         }
+        .settings-tabs {
+            display: flex; gap: 2px; padding: 14px 14px 0; flex-shrink: 0;
+        }
+        .tab-btn {
+            flex: 1; padding: 9px 0; border-radius: 8px;
+            font-weight: bold; font-size: 0.78rem;
+            background: transparent; color: #52525b;
+            border: none; cursor: pointer; transition: all 0.15s;
+        }
+        .tab-btn.active { background: #27272a; color: white; }
+        .tab-panel {
+            flex: 1; overflow-y: auto; padding: 14px 14px 0;
+            display: none; flex-direction: column;
+        }
+        .tab-panel.active { display: flex; }
+        .field-label {
+            font-size: 0.62rem; text-transform: uppercase;
+            color: #71717a; margin-bottom: 4px; display: block; letter-spacing: 0.05em;
+        }
+        .text-input {
+            background: #27272a; color: white; border: 1px solid #3f3f46;
+            padding: 10px 12px; border-radius: 8px; width: 100%;
+            margin-bottom: 12px; font-size: 0.83rem;
+        }
+        .text-input:focus { outline: none; border-color: #3b82f6; }
+        .toggle-group { display: flex; gap: 6px; margin-bottom: 12px; }
+        .toggle-btn {
+            flex: 1; padding: 8px 0; border-radius: 8px;
+            font-weight: bold; font-size: 0.73rem;
+            background: #27272a; color: #71717a;
+            border: none; cursor: pointer;
+        }
+        .toggle-btn.active { background: #2563eb; color: white; }
+        .info-box {
+            background: #27272a; border-radius: 8px; padding: 11px;
+            margin-bottom: 12px; font-size: 0.72rem; color: #71717a; line-height: 1.55;
+        }
+        .save-row {
+            display: flex; align-items: center; gap: 9px;
+            margin-bottom: 14px; margin-top: -6px;
+        }
+        .save-row input[type=checkbox] {
+            width: 15px; height: 15px; accent-color: #2563eb;
+            cursor: pointer; flex-shrink: 0; margin: 0;
+        }
+        .save-row label { font-size: 0.78rem; color: #a1a1aa; cursor: pointer; }
+        .settings-footer {
+            padding: 10px 14px 18px; flex-shrink: 0;
+            display: flex; flex-direction: column; gap: 6px;
+        }
+        .btn-primary {
+            background: #2563eb; padding: 13px; border-radius: 11px;
+            font-weight: bold; font-size: 0.87rem; border: none;
+            color: white; cursor: pointer; width: 100%;
+        }
+        .btn-ghost {
+            background: transparent; padding: 7px;
+            color: #71717a; font-size: 0.82rem; border: none; cursor: pointer;
+        }
+        /* ── Cartridge Library ── */
+        #cartridge-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 9px; padding-bottom: 20px;
+        }
+        .cart-empty {
+            grid-column: 1/-1; text-align: center;
+            color: #52525b; font-size: 0.82rem; padding: 40px 0; line-height: 1.9;
+        }
+        .cart-card {
+            background: #27272a; border-radius: 10px;
+            border: 1px solid #3f3f46; overflow: hidden; display: flex; flex-direction: column;
+        }
+        .cart-art {
+            height: 78px; position: relative;
+            display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, #3f3f46, #18181b); overflow: hidden;
+        }
+        .cart-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        .cart-initial {
+            font-size: 1.9rem; font-weight: 900;
+            color: rgba(255,255,255,0.11); position: relative; z-index: 1;
+        }
+        .cart-notch {
+            position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 38%; height: 7px; background: #18181b; border-radius: 4px 4px 0 0; z-index: 2;
+        }
+        .cart-body { padding: 8px; }
+        .cart-name {
+            font-size: 0.73rem; font-weight: bold; color: white;
+            margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .cart-host {
+            font-size: 0.59rem; color: #71717a; white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis; margin-bottom: 6px;
+        }
+        .cart-actions { display: flex; gap: 4px; }
+        .cart-play {
+            flex: 1; background: #2563eb; color: white; border: none;
+            border-radius: 6px; padding: 5px 0; font-size: 0.63rem; font-weight: bold; cursor: pointer;
+        }
+        .cart-edit, .cart-del {
+            background: #3f3f46; border: none; border-radius: 6px;
+            padding: 5px 7px; font-size: 0.63rem; cursor: pointer;
+        }
+        .cart-edit { color: #a1a1aa; }
+        .cart-del  { color: #f87171; }
+        /* Cart editor */
+        #cart-editor {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.98);
+            z-index: 200; display: none; flex-direction: column;
+            padding: 18px 16px; color: white; overflow-y: auto;
+        }
+        #cart-editor h3 { font-size: 0.95rem; font-weight: bold; margin-bottom: 14px; }
+        .key-grid {
+            display: grid; grid-template-columns: 28px 1fr;
+            gap: 6px 8px; align-items: center; margin-bottom: 10px;
+        }
+        .key-label { font-size: 0.72rem; font-weight: bold; color: #a1a1aa; text-align: right; }
+        .key-hint { font-size: 0.6rem; color: #52525b; grid-column: 1/-1; margin-top: -3px; margin-bottom: 2px; }
     </style>
 </head>
 <body>
+<div class="viewport-wrapper">
+    <div class="gear-icon" onclick="toggleSettings()"><i class="fas fa-cog"></i></div>
 
-    <div class="viewport-wrapper">
-        <div class="gear-icon" onclick="toggleSettings()">
-            <i class="fas fa-cog"></i>
+    <!-- ══ SETTINGS OVERLAY ══ -->
+    <div id="settings-overlay">
+        <div class="settings-tabs">
+            <button class="tab-btn active" id="tab-btn-settings" onclick="showTab('settings')">
+                <i class="fas fa-sliders-h" style="margin-right:4px"></i>Settings
+            </button>
+            <button class="tab-btn" id="tab-btn-library" onclick="showTab('library')">
+                <i class="fas fa-th-large" style="margin-right:4px"></i>My Games
+            </button>
         </div>
 
-        <div id="settings-overlay">
-            <h2 class="text-xl font-bold mb-6">Device Setup</h2>
-            <label class="text-xs uppercase text-zinc-500 mb-1 block">Game URL</label>
-            <input type="text" id="url-input" placeholder="Paste URL here...">
-
-            <label class="text-xs uppercase text-zinc-500 mb-1 block">View Mode</label>
-            <div class="flex gap-2 mb-4">
-                <button id="mode-btn-original" onclick="setMode('original')" class="flex-1 py-2 rounded-lg font-bold text-sm">Original</button>
-                <button id="mode-btn-crop" onclick="setMode('crop')" class="flex-1 py-2 rounded-lg font-bold text-sm">Crop</button>
+        <!-- Settings panel -->
+        <div class="tab-panel active" id="tab-settings">
+            <label class="field-label">Game URL</label>
+            <input class="text-input" type="text" id="url-input" placeholder="Paste game URL here…">
+            <div class="save-row">
+                <input type="checkbox" id="save-game-cb">
+                <label for="save-game-cb">Save this game to My Games</label>
             </div>
 
-            <label class="text-xs uppercase text-zinc-500 mb-1 block">Game Aspect Ratio</label>
-            <div class="flex gap-2 mb-4">
-                <button id="ar-btn-169" onclick="setAspectRatio(16,9)" class="flex-1 py-2 rounded-lg font-bold text-sm">16:9</button>
-                <button id="ar-btn-43" onclick="setAspectRatio(4,3)" class="flex-1 py-2 rounded-lg font-bold text-sm">4:3</button>
+            <label class="field-label">View Mode</label>
+            <div class="toggle-group">
+                <button class="toggle-btn" id="mode-btn-original" onclick="setMode('original')">Original</button>
+                <button class="toggle-btn" id="mode-btn-crop"     onclick="setMode('crop')">Crop</button>
             </div>
 
-            <div class="bg-zinc-800 p-4 rounded-lg mb-6 text-sm text-zinc-400">
-                <p class="mb-2"><i class="fas fa-keyboard mr-2"></i> <strong>Compatibility Mode:</strong></p>
-                <p class="mb-4 text-xs">If a game doesn't respond to touches, it likely blocks external scripts due to security (Cross-Origin). Gamepad API is usually the most reliable method for such games.</p>
-                <p class="mb-2"><strong>Key Mapping:</strong></p>
-                <ul class="list-disc ml-5 space-y-1">
-                    <li>DPAD = Arrow Keys / WASD</li>
-                    <li>A = Space / Enter</li>
-                    <li>B = Esc / Shift</li>
-                </ul>
+            <label class="field-label">Game Aspect Ratio</label>
+            <div class="toggle-group">
+                <button class="toggle-btn" id="ar-btn-169" onclick="setAspectRatio(16,9)">16:9</button>
+                <button class="toggle-btn" id="ar-btn-43"  onclick="setAspectRatio(4,3)">4:3</button>
             </div>
 
-            <label class="text-xs uppercase text-zinc-500 mb-1 block">Performance</label>
-            <div class="flex gap-2 mb-4">
-                <button id="speed-fix-btn" onclick="toggleSpeedFix()" class="flex-1 py-2 rounded-lg font-bold text-sm bg-zinc-700 text-zinc-300">Speed Fix: OFF</button>
+            <label class="field-label">Performance</label>
+            <div class="toggle-group" style="margin-bottom:4px">
+                <button class="toggle-btn" id="speed-fix-btn" onclick="toggleSpeedFix()">Speed Fix: OFF</button>
             </div>
-            <p class="text-xs text-zinc-500 mb-4 -mt-2">Prevents browser from throttling game frame rate. Enable if game runs in slow motion.</p>
+            <p style="font-size:0.65rem;color:#52525b;margin-bottom:12px">Enable if game runs in slow motion.</p>
 
-            <div class="mt-auto flex flex-col gap-3">
-                <button onclick="saveSettings()" class="bg-blue-600 py-4 rounded-xl font-bold">Launch Game</button>
-                <button onclick="toggleSettings()" class="text-zinc-400 py-2">Cancel</button>
+            <div class="info-box">
+                <strong style="color:#a1a1aa">Controls:</strong><br>
+                D-Pad = Arrow Keys / WASD &nbsp;·&nbsp; A = Space/Enter<br>
+                B = Esc/Shift &nbsp;·&nbsp; X = Z &nbsp;·&nbsp; Y = X<br>
+                <em style="color:#52525b">Key bindings are customizable per saved game.</em>
             </div>
         </div>
 
-        <!-- 60% Screen -->
-        <div class="screen-section">
-            <iframe id="game-iframe" src="about:blank"></iframe>
+        <!-- Library panel -->
+        <div class="tab-panel" id="tab-library">
+            <div id="cartridge-grid"></div>
         </div>
 
-        <!-- 40% Controls -->
-        <div class="controls-section">
-            <div class="shoulder-row">
-                <div class="shoulder-btn" data-btn="4" data-keys="q">L</div>
-                <div class="shoulder-btn" data-btn="5" data-keys="e">R</div>
+        <!-- Footer -->
+        <div class="settings-footer" id="settings-footer">
+            <button class="btn-primary" onclick="saveSettings()">
+                <i class="fas fa-gamepad" style="margin-right:6px"></i>Launch Game
+            </button>
+            <button class="btn-ghost" onclick="toggleSettings()">Cancel</button>
+        </div>
+
+        <!-- Cartridge editor (layered inside overlay) -->
+        <div id="cart-editor">
+            <h3><i class="fas fa-edit" style="margin-right:6px"></i>Edit Cartridge</h3>
+
+            <label class="field-label">Name</label>
+            <input class="text-input" id="edit-name" placeholder="Game name">
+
+            <label class="field-label">Artwork URL <span style="font-size:0.6rem;text-transform:none;color:#52525b">(any image URL)</span></label>
+            <input class="text-input" id="edit-art" placeholder="https://…">
+
+            <label class="field-label">Button Key Bindings
+                <span style="font-size:0.6rem;text-transform:none;color:#52525b"> — comma-separated</span>
+            </label>
+            <div class="key-grid">
+                <span class="key-label" style="color:#4ade80">A</span>
+                <input class="text-input key-input" id="edit-key-a" placeholder="Enter,Space" style="margin-bottom:0">
+                <span class="key-label" style="color:#f87171">B</span>
+                <input class="text-input key-input" id="edit-key-b" placeholder="Escape,Shift" style="margin-bottom:0">
+                <span class="key-label" style="color:#60a5fa">X</span>
+                <input class="text-input key-input" id="edit-key-x" placeholder="z" style="margin-bottom:0">
+                <span class="key-label" style="color:#facc15">Y</span>
+                <input class="text-input key-input" id="edit-key-y" placeholder="x" style="margin-bottom:0">
+                <span></span>
+                <span class="key-hint">Examples: z, x, Enter, Space, Escape, Shift, ArrowUp, 1</span>
             </div>
 
-            <div class="main-controls">
-                <!-- D-Pad -->
-                <div class="dpad-wrapper">
-                    <div class="dpad-hat"></div>
-                    <div class="zone z-u" data-btn="12" data-keys="ArrowUp,w"></div>
-                    <div class="zone z-d" data-btn="13" data-keys="ArrowDown,s"></div>
-                    <div class="zone z-l" data-btn="14" data-keys="ArrowLeft,a"></div>
-                    <div class="zone z-r" data-btn="15" data-keys="ArrowRight,d"></div>
-                    
-                    <div class="zone z-ul" data-btns="12,14" data-keys="ArrowUp,ArrowLeft,w,a"></div>
-                    <div class="zone z-ur" data-btns="12,15" data-keys="ArrowUp,ArrowRight,w,d"></div>
-                    <div class="zone z-dl" data-btns="13,14" data-keys="ArrowDown,ArrowLeft,s,a"></div>
-                    <div class="zone z-dr" data-btns="13,15" data-keys="ArrowDown,ArrowRight,s,d"></div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="action-cluster">
-                    <div class="btn btn-y" data-btn="3" data-keys="i">Y</div>
-                    <div class="btn btn-x" data-btn="2" data-keys="j">X</div>
-                    <div class="btn btn-b" data-btn="1" data-keys="Escape,Shift">B</div>
-                    <div class="btn btn-a" data-btn="0" data-keys="Enter, ">A</div>
-                </div>
-            </div>
-
-            <div class="menu-row">
-                <div class="menu-btn" data-btn="8" data-keys="Tab"></div>
-                <div class="menu-btn" data-btn="9" data-keys="p"></div>
+            <div style="display:flex;gap:8px;margin-top:auto;padding-top:14px">
+                <button class="btn-primary" style="background:#16a34a" onclick="saveCartEdit()">
+                    <i class="fas fa-check" style="margin-right:4px"></i>Save
+                </button>
+                <button class="btn-primary" style="background:#3f3f46;flex:0 0 80px" onclick="closeCartEditor()">Cancel</button>
             </div>
         </div>
     </div>
+    <!-- ══ END SETTINGS ══ -->
 
-    <script>
-        /**
-         * VIRTUAL GAMEPAD STATE
-         */
-        const virtualGamepad = {
-            id: "Handheld Virtual Controller",
-            index: 0,
-            connected: true,
-            timestamp: performance.now(),
-            mapping: "standard",
-            axes: [0, 0, 0, 0],
-            buttons: Array(17).fill(0).map(() => ({ pressed: false, touched: false, value: 0 }))
-        };
+    <!-- Screen (60%) -->
+    <div class="screen-section">
+        <iframe id="game-iframe" src="about:blank" allow="gamepad"></iframe>
+    </div>
 
-        navigator.getGamepads = () => [virtualGamepad, null, null, null];
+    <!-- Controls (40%) -->
+    <div class="controls-section">
+        <div class="shoulder-row">
+            <div class="shoulder-btn" data-btn="4" data-keys="q">L</div>
+            <div class="shoulder-btn" data-btn="5" data-keys="e">R</div>
+        </div>
 
-        function triggerConnection() {
-            try {
-                const event = new Event('gamepadconnected');
-                Object.defineProperty(event, 'gamepad', { value: virtualGamepad, enumerable: true });
-                window.dispatchEvent(event);
-            } catch (e) {}
-        }
+        <div class="main-controls">
+            <!-- D-Pad (cross look, joystick feel) -->
+            <div class="dpad-wrapper" id="dpad-wrapper">
+                <div class="dpad-hat" id="dpad-hat"></div>
+                <div class="dpad-tick dpad-tick-v dpad-tick-t"></div>
+                <div class="dpad-tick dpad-tick-v dpad-tick-b"></div>
+                <div class="dpad-tick dpad-tick-h dpad-tick-l"></div>
+                <div class="dpad-tick dpad-tick-h dpad-tick-r"></div>
+            </div>
 
-        /**
-         * KEYBOARD BRIDGE
-         */
-        function sendKey(key, type) {
-            const iframeEl = document.getElementById('game-iframe');
-            if (!iframeEl.contentWindow) return;
-            const eventData = {
-                type: 'keyboard-bridge', keyAction: type, key: key,
-                code: key.length === 1 ? `Key${key.toUpperCase()}` : key
-            };
-            iframeEl.contentWindow.postMessage(eventData, "*");
-            try {
-                if (iframeEl.contentWindow.dispatchEvent) {
-                    const kbEvent = new KeyboardEvent(type, {
-                        key, code: eventData.code, bubbles: true, cancelable: true
-                    });
-                    iframeEl.contentWindow.dispatchEvent(kbEvent);
-                }
-            } catch (err) {}
-        }
+            <!-- Double button -->
+            <div class="double-btn" id="double-btn">
+                <span class="dbl-x">×2</span>
+                <span style="font-size:0.48rem;opacity:0.6;letter-spacing:0.04em">DBL</span>
+            </div>
 
-        // ============================================================
-        // D-PAD: Active zone set → accurate composite hat positioning
-        // ============================================================
-        const activeZones = new Set();
+            <!-- YXAB cluster -->
+            <div class="action-cluster">
+                <div class="btn btn-y" id="btn-y" data-btn="3" data-keys="x">Y</div>
+                <div class="btn btn-x" id="btn-x" data-btn="2" data-keys="z">X</div>
+                <div class="btn btn-b" id="btn-b" data-btn="1" data-keys="Escape,Shift">B</div>
+                <div class="btn btn-a" id="btn-a" data-btn="0" data-keys="Enter,Space">A</div>
+            </div>
+        </div>
 
-        function updateHat() {
-            const hat = document.querySelector('.dpad-hat');
-            const az = activeZones;
-            const hasUp    = az.has('z-u') || az.has('z-ul') || az.has('z-ur');
-            const hasDown  = az.has('z-d') || az.has('z-dl') || az.has('z-dr');
-            const hasLeft  = az.has('z-l') || az.has('z-ul') || az.has('z-dl');
-            const hasRight = az.has('z-r') || az.has('z-ur') || az.has('z-dr');
+        <div class="menu-row">
+            <div class="menu-btn" data-btn="8" data-keys="Tab"></div>
+            <div class="menu-btn" data-btn="9" data-keys="p"></div>
+        </div>
+    </div>
+</div>
 
-            let tx = -50, ty = -50;
-            if (hasUp)    ty = -60;
-            if (hasDown)  ty = -40;
-            if (hasLeft)  tx = -60;
-            if (hasRight) tx = -40;
+<script>
+// ════════════════════════════════════════════════
+// VIRTUAL GAMEPAD
+// ════════════════════════════════════════════════
+const virtualGamepad = {
+    id: "Handheld Virtual Controller",
+    index: 0, connected: true,
+    timestamp: performance.now(),
+    mapping: "standard",
+    axes: [0, 0, 0, 0],
+    buttons: Array(17).fill(0).map(() => ({ pressed: false, touched: false, value: 0 }))
+};
+navigator.getGamepads = () => [virtualGamepad, null, null, null];
 
-            hat.style.transform = `translate(${tx}%, ${ty}%)`;
-        }
+function triggerConnection() {
+    try {
+        const ev = new Event('gamepadconnected');
+        Object.defineProperty(ev, 'gamepad', { value: virtualGamepad, enumerable: true });
+        window.dispatchEvent(ev);
+    } catch(e) {}
+}
 
-        // ============================================================
-        // DOUBLE-TAP DETECTION
-        // Fires a keyup→keydown cycle on the second tap so the game
-        // registers two distinct presses (e.g. run triggers).
-        // ============================================================
-        const doubleTapTracker = {};
-        const DOUBLE_TAP_MS = 280;
+// ════════════════════════════════════════════════
+// KEYBOARD BRIDGE
+// ════════════════════════════════════════════════
+function sendKey(key, type) {
+    const fr = document.getElementById('game-iframe');
+    if (!fr || !fr.contentWindow) return;
+    const code = key.length === 1 ? `Key${key.toUpperCase()}` : key;
+    fr.contentWindow.postMessage({ type: 'keyboard-bridge', keyAction: type, key, code }, '*');
+    try {
+        fr.contentWindow.dispatchEvent(new KeyboardEvent(type, { key, code, bubbles: true, cancelable: true }));
+    } catch(e) {}
+}
 
-        function checkDoubleTap(id) {
-            const now = Date.now();
-            const prev = doubleTapTracker[id] || 0;
-            doubleTapTracker[id] = now;
-            // Must be fast enough to be intentional, not a same-event re-fire
-            return (now - prev) < DOUBLE_TAP_MS && (now - prev) > 40;
-        }
+// ════════════════════════════════════════════════
+// SPEED FIX
+// ════════════════════════════════════════════════
+let stayAliveCtx = null;
+let speedFixEnabled = localStorage.getItem('vb_speedfix') === '1';
 
-        // ============================================================
-        // SPEED FIX: Silent AudioContext prevents browser from
-        // throttling requestAnimationFrame inside the game iframe.
-        // Browsers never throttle rAF in tabs with active audio.
-        // ============================================================
-        let stayAliveCtx = null;
-        let speedFixEnabled = localStorage.getItem('vb_speedfix') === '1';
+function toggleSpeedFix() { setSpeedFix(!speedFixEnabled); }
+function setSpeedFix(on) {
+    speedFixEnabled = on;
+    localStorage.setItem('vb_speedfix', on ? '1' : '0');
+    updateSpeedFixBtn();
+    on ? startStayAlive() : stopStayAlive();
+}
+function startStayAlive() {
+    if (stayAliveCtx) return;
+    try {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        stayAliveCtx = new AC();
+        const osc = stayAliveCtx.createOscillator(), gain = stayAliveCtx.createGain();
+        gain.gain.value = 0.00001;
+        osc.connect(gain); gain.connect(stayAliveCtx.destination); osc.start();
+    } catch(e) {}
+}
+function stopStayAlive() { if (stayAliveCtx) { stayAliveCtx.close(); stayAliveCtx = null; } }
+function updateSpeedFixBtn() {
+    const btn = document.getElementById('speed-fix-btn'); if (!btn) return;
+    btn.textContent = speedFixEnabled ? 'Speed Fix: ON' : 'Speed Fix: OFF';
+    btn.classList.toggle('active', speedFixEnabled);
+}
 
-        function toggleSpeedFix() {
-            setSpeedFix(!speedFixEnabled);
-        }
+// ════════════════════════════════════════════════
+// VIEW MODE & ASPECT RATIO
+// ════════════════════════════════════════════════
+let currentMode = localStorage.getItem('vb_mode') || 'original';
+let gameAR = JSON.parse(localStorage.getItem('vb_ar') || '{"w":16,"h":9}');
+const VIRTUAL_W = 1280;
 
-        function setSpeedFix(enabled) {
-            speedFixEnabled = enabled;
-            localStorage.setItem('vb_speedfix', enabled ? '1' : '0');
-            updateSpeedFixButton();
-            if (enabled) startStayAlive(); else stopStayAlive();
-        }
+function applyViewMode() {
+    const sc = document.querySelector('.screen-section');
+    const fr = document.getElementById('game-iframe');
+    const W = sc.clientWidth, H = sc.clientHeight;
+    if (!W || !H) return;
+    const VH = Math.round(VIRTUAL_W * gameAR.h / gameAR.w);
+    fr.style.width = VIRTUAL_W + 'px'; fr.style.height = VH + 'px';
+    let scale, left, top;
+    if (currentMode === 'original') {
+        scale = Math.min(W / VIRTUAL_W, H / VH);
+        left = (W - VIRTUAL_W * scale) / 2; top = (H - VH * scale) / 2;
+    } else {
+        scale = H / VH;
+        left = (W - VIRTUAL_W * scale) / 2; top = 0;
+    }
+    fr.style.transform = `scale(${scale})`; fr.style.transformOrigin = 'top left';
+    fr.style.left = left + 'px'; fr.style.top = top + 'px';
+}
+function setMode(m) { currentMode = m; localStorage.setItem('vb_mode', m); updateModeButtons(); applyViewMode(); }
+function setAspectRatio(w, h) { gameAR = {w,h}; localStorage.setItem('vb_ar', JSON.stringify(gameAR)); updateARButtons(); applyViewMode(); }
+function updateModeButtons() {
+    document.getElementById('mode-btn-original').classList.toggle('active', currentMode==='original');
+    document.getElementById('mode-btn-crop').classList.toggle('active', currentMode==='crop');
+}
+function updateARButtons() {
+    const is = gameAR.w===16&&gameAR.h===9;
+    document.getElementById('ar-btn-169').classList.toggle('active', is);
+    document.getElementById('ar-btn-43').classList.toggle('active', !is);
+}
+window.addEventListener('resize', applyViewMode);
 
-        function startStayAlive() {
-            if (stayAliveCtx) return;
-            try {
-                const AC = window.AudioContext || window.webkitAudioContext;
-                stayAliveCtx = new AC();
-                const osc  = stayAliveCtx.createOscillator();
-                const gain = stayAliveCtx.createGain();
-                gain.gain.value = 0.00001; // inaudible
-                osc.connect(gain);
-                gain.connect(stayAliveCtx.destination);
-                osc.start();
-            } catch(e) {}
-        }
+// ════════════════════════════════════════════════
+// D-PAD — cross look, joystick touch tracking
+// ════════════════════════════════════════════════
+const dpadWrapper = document.getElementById('dpad-wrapper');
+const dpadHat     = document.getElementById('dpad-hat');
 
-        function stopStayAlive() {
-            if (stayAliveCtx) { stayAliveCtx.close(); stayAliveCtx = null; }
-        }
+const DIR_MAP = {
+    up:    { btn: 12, keys: ['ArrowUp',    'w'] },
+    down:  { btn: 13, keys: ['ArrowDown',  's'] },
+    left:  { btn: 14, keys: ['ArrowLeft',  'a'] },
+    right: { btn: 15, keys: ['ArrowRight', 'd'] },
+};
 
-        function updateSpeedFixButton() {
-            const btn = document.getElementById('speed-fix-btn');
-            if (!btn) return;
-            if (speedFixEnabled) {
-                btn.textContent = 'Speed Fix: ON';
-                btn.className = 'flex-1 py-2 rounded-lg font-bold text-sm bg-green-600 text-white';
+let dpadTouchId = null;
+const activeDirs = new Set();
+let doubleModeActive = false;
+
+function computeDirs(dx, dy) {
+    if (Math.sqrt(dx*dx + dy*dy) < 14) return new Set();
+    const deg = ((Math.atan2(dy, dx) * 180 / Math.PI) + 360) % 360;
+    const s = new Set();
+    if      (deg >= 337.5 || deg < 22.5)  s.add('right');
+    else if (deg < 67.5)                  { s.add('right'); s.add('down'); }
+    else if (deg < 112.5)                 s.add('down');
+    else if (deg < 157.5)                 { s.add('down'); s.add('left'); }
+    else if (deg < 202.5)                 s.add('left');
+    else if (deg < 247.5)                 { s.add('left'); s.add('up'); }
+    else if (deg < 292.5)                 s.add('up');
+    else                                  { s.add('up'); s.add('right'); }
+    return s;
+}
+
+function applyDirs(want) {
+    for (const dir of want) {
+        if (!activeDirs.has(dir)) {
+            const m = DIR_MAP[dir];
+            if (doubleModeActive) {
+                m.keys.forEach(k => sendKey(k, 'keyup'));
+                setTimeout(() => m.keys.forEach(k => sendKey(k, 'keydown')), 20);
             } else {
-                btn.textContent = 'Speed Fix: OFF';
-                btn.className = 'flex-1 py-2 rounded-lg font-bold text-sm bg-zinc-700 text-zinc-300';
+                m.keys.forEach(k => sendKey(k, 'keydown'));
             }
+            virtualGamepad.buttons[m.btn].pressed = true;
+            virtualGamepad.buttons[m.btn].value   = 1;
+            activeDirs.add(dir);
         }
-
-        // ============================================================
-        // VIEW MODE & ASPECT RATIO
-        // ============================================================
-        let currentMode = localStorage.getItem('vb_mode') || 'original';
-        let gameAR = JSON.parse(localStorage.getItem('vb_ar') || '{"w":16,"h":9}');
-        const VIRTUAL_W = 1280;
-
-        function applyViewMode() {
-            const screenEl = document.querySelector('.screen-section');
-            const W = screenEl.clientWidth;
-            const H = screenEl.clientHeight;
-            if (!W || !H) return;
-            const VW = VIRTUAL_W;
-            const VH = Math.round(VIRTUAL_W * gameAR.h / gameAR.w);
-            iframe.style.width  = VW + 'px';
-            iframe.style.height = VH + 'px';
-            let scale, left, top;
-            if (currentMode === 'original') {
-                scale = W / VW;
-                left  = 0;
-                top   = (H - VH * scale) / 2;
-            } else {
-                scale = H / VH;
-                left  = (W - VW * scale) / 2;
-                top   = 0;
-            }
-            iframe.style.transform       = `scale(${scale})`;
-            iframe.style.transformOrigin = 'top left';
-            iframe.style.left            = left + 'px';
-            iframe.style.top             = top  + 'px';
+    }
+    for (const dir of [...activeDirs]) {
+        if (!want.has(dir)) {
+            const m = DIR_MAP[dir];
+            m.keys.forEach(k => sendKey(k, 'keyup'));
+            virtualGamepad.buttons[m.btn].pressed = false;
+            virtualGamepad.buttons[m.btn].value   = 0;
+            activeDirs.delete(dir);
         }
+    }
+    virtualGamepad.timestamp = performance.now();
+    try { document.getElementById('game-iframe').contentWindow.focus(); } catch(e) {}
+}
 
-        function setMode(mode) {
-            currentMode = mode;
-            localStorage.setItem('vb_mode', mode);
-            updateModeButtons();
-            applyViewMode();
-        }
+function moveDpad(cx, cy) {
+    const r  = dpadWrapper.getBoundingClientRect();
+    const dx = cx - (r.left + r.width  / 2);
+    const dy = cy - (r.top  + r.height / 2);
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    // Move hat visually
+    if (dist < 14) {
+        dpadHat.style.transform = 'translate(-50%, -50%)';
+    } else {
+        const angle = Math.atan2(dy, dx);
+        const t = Math.min(dist, 40) * 0.26;
+        dpadHat.style.transform =
+            `translate(calc(-50% + ${(Math.cos(angle)*t).toFixed(1)}px), calc(-50% + ${(Math.sin(angle)*t).toFixed(1)}px))`;
+    }
+    applyDirs(computeDirs(dx, dy));
+}
 
-        function setAspectRatio(w, h) {
-            gameAR = { w, h };
-            localStorage.setItem('vb_ar', JSON.stringify(gameAR));
-            updateARButtons();
-            applyViewMode();
-        }
+function releaseDpad() {
+    dpadHat.style.transform = 'translate(-50%, -50%)';
+    applyDirs(new Set());
+    dpadTouchId = null;
+}
 
-        function updateModeButtons() {
-            document.getElementById('mode-btn-original').className =
-                `flex-1 py-2 rounded-lg font-bold text-sm ${currentMode === 'original' ? 'bg-blue-600 text-white' : 'bg-zinc-700 text-zinc-300'}`;
-            document.getElementById('mode-btn-crop').className =
-                `flex-1 py-2 rounded-lg font-bold text-sm ${currentMode === 'crop' ? 'bg-blue-600 text-white' : 'bg-zinc-700 text-zinc-300'}`;
-        }
+dpadWrapper.addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (dpadTouchId === null) { dpadTouchId = e.changedTouches[0].identifier; moveDpad(e.changedTouches[0].clientX, e.changedTouches[0].clientY); }
+}, { passive: false });
+dpadWrapper.addEventListener('touchmove', e => {
+    e.preventDefault();
+    for (const t of e.changedTouches) if (t.identifier === dpadTouchId) { moveDpad(t.clientX, t.clientY); break; }
+}, { passive: false });
+['touchend','touchcancel'].forEach(ev => dpadWrapper.addEventListener(ev, e => {
+    e.preventDefault();
+    for (const t of e.changedTouches) if (t.identifier === dpadTouchId) { releaseDpad(); break; }
+}, { passive: false }));
+// Mouse (desktop)
+dpadWrapper.addEventListener('mousedown', e => {
+    e.preventDefault(); moveDpad(e.clientX, e.clientY);
+    const mm = e => moveDpad(e.clientX, e.clientY);
+    const mu = () => { releaseDpad(); window.removeEventListener('mousemove', mm); window.removeEventListener('mouseup', mu); };
+    window.addEventListener('mousemove', mm); window.addEventListener('mouseup', mu);
+});
 
-        function updateARButtons() {
-            const is169 = gameAR.w === 16 && gameAR.h === 9;
-            document.getElementById('ar-btn-169').className =
-                `flex-1 py-2 rounded-lg font-bold text-sm ${is169 ? 'bg-blue-600 text-white' : 'bg-zinc-700 text-zinc-300'}`;
-            document.getElementById('ar-btn-43').className =
-                `flex-1 py-2 rounded-lg font-bold text-sm ${!is169 ? 'bg-blue-600 text-white' : 'bg-zinc-700 text-zinc-300'}`;
-        }
+// ════════════════════════════════════════════════
+// DOUBLE BUTTON
+// ════════════════════════════════════════════════
+const doubleBtn = document.getElementById('double-btn');
+function setDoubleMode(on) { doubleModeActive = on; doubleBtn.classList.toggle('active', on); }
+doubleBtn.addEventListener('touchstart', e => { e.preventDefault(); setDoubleMode(true); }, { passive: false });
+['touchend','touchcancel'].forEach(ev => doubleBtn.addEventListener(ev, e => { e.preventDefault(); setDoubleMode(false); }, { passive: false }));
+doubleBtn.addEventListener('mousedown', e => {
+    e.preventDefault(); setDoubleMode(true);
+    const mu = () => { setDoubleMode(false); window.removeEventListener('mouseup', mu); };
+    window.addEventListener('mouseup', mu);
+});
 
-        window.addEventListener('resize', applyViewMode);
+// ════════════════════════════════════════════════
+// ACTION BUTTONS — per-touch-ID (fixes YXAB)
+// ════════════════════════════════════════════════
+function handleBtnInput(el, pressed) {
+    const bidx  = el.getAttribute('data-btn');
+    const bidxs = el.getAttribute('data-btns');
+    const keys  = (el.getAttribute('data-keys') || '').split(',').map(k=>k.trim()).filter(Boolean);
 
-        // ============================================================
-        // CORE LOGIC
-        // ============================================================
-        const iframe  = document.getElementById('game-iframe');
-        const overlay = document.getElementById('settings-overlay');
-        const urlInput = document.getElementById('url-input');
+    const gp = i => { const n=parseInt(i); virtualGamepad.buttons[n].pressed=pressed; virtualGamepad.buttons[n].value=pressed?1:0; };
+    if (bidx)  gp(bidx);
+    if (bidxs) bidxs.split(',').forEach(gp);
 
-        function toggleSettings() {
-            overlay.style.display = overlay.style.display === 'flex' ? 'none' : 'flex';
-        }
+    keys.forEach(k => sendKey(k, pressed ? 'keydown' : 'keyup'));
 
-        function saveSettings() {
-            const url = urlInput.value || 'https://www.google.com/logos/2010/pacman10-i.html';
-            iframe.src = url;
-            localStorage.setItem('vb_url_v2', url);
-            toggleSettings();
-            setTimeout(triggerConnection, 1000);
-            setTimeout(applyViewMode, 100);
-        }
+    if (pressed) el.classList.add('active'); else el.classList.remove('active');
+    virtualGamepad.timestamp = performance.now();
+    try { document.getElementById('game-iframe').contentWindow.focus(); } catch(e) {}
+}
 
-        function handleInput(el, isPressed) {
-            const btnIdx  = el.getAttribute('data-btn');
-            const btnsIdx = el.getAttribute('data-btns');
-            const keys    = el.getAttribute('data-keys')?.split(',').map(k => k.trim()).filter(Boolean) || [];
+function wireButton(btn) {
+    let tid = null;
+    btn.addEventListener('touchstart', e => {
+        e.preventDefault(); e.stopPropagation();
+        if (tid === null) { tid = e.changedTouches[0].identifier; handleBtnInput(btn, true); }
+    }, { passive: false });
+    btn.addEventListener('touchmove', e => { e.preventDefault(); }, { passive: false });
+    btn.addEventListener('touchend', e => {
+        e.preventDefault();
+        for (const t of e.changedTouches) if (t.identifier === tid) { tid = null; handleBtnInput(btn, false); break; }
+    }, { passive: false });
+    btn.addEventListener('touchcancel', () => { if (tid !== null) { tid = null; handleBtnInput(btn, false); } }, { passive: false });
+    btn.addEventListener('mousedown', e => {
+        e.preventDefault(); handleBtnInput(btn, true);
+        const mu = () => { handleBtnInput(btn, false); window.removeEventListener('mouseup', mu); };
+        window.addEventListener('mouseup', mu);
+    });
+}
 
-            // Update virtual gamepad state
-            const apply = (idx) => {
-                const i = parseInt(idx);
-                virtualGamepad.buttons[i].pressed = isPressed;
-                virtualGamepad.buttons[i].value   = isPressed ? 1 : 0;
-            };
-            if (btnIdx)  apply(btnIdx);
-            if (btnsIdx) btnsIdx.split(',').forEach(apply);
+document.querySelectorAll('.btn, .shoulder-btn, .menu-btn').forEach(wireButton);
 
-            // Key bridge
-            keys.forEach(k => sendKey(k, isPressed ? 'keydown' : 'keyup'));
+// ════════════════════════════════════════════════
+// CARTRIDGE LIBRARY
+// ════════════════════════════════════════════════
+function loadCarts()   { try { return JSON.parse(localStorage.getItem('vb_cartridges')||'[]'); } catch{ return []; } }
+function saveCarts(c)  { localStorage.setItem('vb_cartridges', JSON.stringify(c)); }
 
-            // ---- D-Pad hat: track active zones, compute composite direction ----
-            if (el.classList.contains('zone')) {
-                const zoneKey = [...el.classList].find(c => c.startsWith('z-'));
-                if (zoneKey) {
-                    if (isPressed) activeZones.add(zoneKey);
-                    else           activeZones.delete(zoneKey);
-                }
-                updateHat();
-            }
+function hostOf(url)   { try { return new URL(url).hostname.replace(/^www\./,''); } catch{ return url.slice(0,20); } }
+function nameOf(url)   { try { return new URL(url).hostname.replace(/^www\./,'').split('.')[0].replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); } catch{ return 'Game'; } }
+function esc(s)        { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-            // ---- Double-tap detection ----
-            if (isPressed) {
-                const tapId = el.getAttribute('data-btn') || el.getAttribute('data-btns') ||
-                              [...el.classList].find(c => c.startsWith('z-')) || el.className;
-                if (checkDoubleTap(tapId)) {
-                    // Send keyup immediately, then keydown 20ms later — game sees two distinct presses
-                    keys.forEach(k => sendKey(k, 'keyup'));
-                    setTimeout(() => keys.forEach(k => sendKey(k, 'keydown')), 20);
-                    // Brief visual flash
-                    el.classList.add('double-tap-flash');
-                    setTimeout(() => el.classList.remove('double-tap-flash'), 120);
-                }
-            }
+function addCart(url) {
+    const carts = loadCarts();
+    if (carts.find(c => c.url === url)) return;
+    carts.unshift({
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2,5),
+        url, name: nameOf(url), art: '',
+        keys: { a:'Enter,Space', b:'Escape,Shift', x:'z', y:'x' }
+    });
+    saveCarts(carts);
+}
 
-            // ---- Button press visual (non-zone buttons) ----
-            if (!el.classList.contains('zone')) {
-                if (isPressed) el.classList.add('active');
-                else           el.classList.remove('active');
-            }
+function deleteCart(id) { saveCarts(loadCarts().filter(c=>c.id!==id)); renderLibrary(); }
 
-            // ---- Focus iframe to prevent rAF throttling ----
-            try { iframe.contentWindow.focus(); } catch(e) {}
+function applyCartKeys(cart) {
+    if (!cart?.keys) return;
+    [['btn-a',cart.keys.a],['btn-b',cart.keys.b],['btn-x',cart.keys.x],['btn-y',cart.keys.y]].forEach(([id,k]) => {
+        if (k) { const el=document.getElementById(id); if(el) el.setAttribute('data-keys',k); }
+    });
+}
 
-            virtualGamepad.timestamp = performance.now();
-        }
+function playCart(id) {
+    const cart = loadCarts().find(c=>c.id===id); if (!cart) return;
+    applyCartKeys(cart);
+    document.getElementById('url-input').value = cart.url;
+    document.getElementById('game-iframe').src  = cart.url;
+    localStorage.setItem('vb_url_v2', cart.url);
+    toggleSettings();
+    setTimeout(triggerConnection, 1000);
+    setTimeout(applyViewMode, 100);
+}
 
-        // Event listeners
-        const allButtons = document.querySelectorAll('[data-btn], [data-btns]');
-        allButtons.forEach(btn => {
-            const press   = (e) => { e.preventDefault(); handleInput(btn, true); };
-            const release = (e) => { e.preventDefault(); handleInput(btn, false); };
-            btn.addEventListener('touchstart', press,   { passive: false });
-            btn.addEventListener('touchend',   release, { passive: false });
-            btn.addEventListener('mousedown',  press);
-        });
+function renderLibrary() {
+    const grid  = document.getElementById('cartridge-grid');
+    const carts = loadCarts();
+    if (!carts.length) {
+        grid.innerHTML = '<div class="cart-empty">No saved games yet.<br>Paste a URL, tick "Save this game",<br>then launch.</div>';
+        return;
+    }
+    grid.innerHTML = carts.map(c => {
+        const art = c.art ? `<img src="${esc(c.art)}" alt="" onerror="this.style.display='none'">` : '';
+        return `
+        <div class="cart-card">
+            <div class="cart-art">${art}${!c.art?`<span class="cart-initial">${esc((c.name||'?')[0].toUpperCase())}</span>`:''}<div class="cart-notch"></div></div>
+            <div class="cart-body">
+                <div class="cart-name" title="${esc(c.name)}">${esc(c.name)}</div>
+                <div class="cart-host">${esc(hostOf(c.url))}</div>
+                <div class="cart-actions">
+                    <button class="cart-play" onclick="playCart('${c.id}')">▶ Play</button>
+                    <button class="cart-edit" onclick="openCartEditor('${c.id}')"><i class="fas fa-pen"></i></button>
+                    <button class="cart-del"  onclick="deleteCart('${c.id}')"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
 
-        window.addEventListener('mouseup', () => {
-            allButtons.forEach(btn => handleInput(btn, false));
-        });
-
-        window.onload = () => {
-            urlInput.value = localStorage.getItem('vb_url_v2') || '';
-            updateModeButtons();
-            updateARButtons();
-            updateSpeedFixButton();
-            if (speedFixEnabled) startStayAlive();
-            saveSettings();
-            setTimeout(applyViewMode, 150);
-
-            const init = () => {
-                triggerConnection();
-                document.body.removeEventListener('touchstart', init);
-                document.body.removeEventListener('mousedown',  init);
-            };
-            document.body.addEventListener('touchstart', init);
-            document.body.addEventListener('mousedown',  init);
+// Cart editor
+let editingId = null;
+function openCartEditor(id) {
+    const cart = loadCarts().find(c=>c.id===id); if (!cart) return;
+    editingId = id;
+    document.getElementById('edit-name').value  = cart.name || '';
+    document.getElementById('edit-art').value   = cart.art  || '';
+    document.getElementById('edit-key-a').value = cart.keys?.a || 'Enter,Space';
+    document.getElementById('edit-key-b').value = cart.keys?.b || 'Escape,Shift';
+    document.getElementById('edit-key-x').value = cart.keys?.x || 'z';
+    document.getElementById('edit-key-y').value = cart.keys?.y || 'x';
+    document.getElementById('cart-editor').style.display = 'flex';
+}
+function closeCartEditor() { editingId = null; document.getElementById('cart-editor').style.display = 'none'; }
+function saveCartEdit() {
+    if (!editingId) return;
+    const carts = loadCarts();
+    const cart  = carts.find(c=>c.id===editingId);
+    if (cart) {
+        cart.name = document.getElementById('edit-name').value.trim() || cart.name;
+        cart.art  = document.getElementById('edit-art').value.trim();
+        cart.keys = {
+            a: document.getElementById('edit-key-a').value.trim() || 'Enter,Space',
+            b: document.getElementById('edit-key-b').value.trim() || 'Escape,Shift',
+            x: document.getElementById('edit-key-x').value.trim() || 'z',
+            y: document.getElementById('edit-key-y').value.trim() || 'x',
         };
-    </script>
+        saveCarts(carts);
+    }
+    closeCartEditor(); renderLibrary();
+}
+
+// ════════════════════════════════════════════════
+// SETTINGS UI
+// ════════════════════════════════════════════════
+function toggleSettings() {
+    const ov = document.getElementById('settings-overlay');
+    const showing = ov.style.display === 'flex';
+    ov.style.display = showing ? 'none' : 'flex';
+    if (!showing) {
+        showTab('settings');
+        document.getElementById('url-input').value = localStorage.getItem('vb_url_v2') || '';
+    }
+}
+
+function showTab(tab) {
+    ['settings','library'].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.toggle('active', t===tab);
+        document.getElementById(`tab-btn-${t}`).classList.toggle('active', t===tab);
+    });
+    document.getElementById('settings-footer').style.display = tab==='settings' ? 'flex' : 'none';
+    if (tab==='library') renderLibrary();
+}
+
+function saveSettings() {
+    const url  = document.getElementById('url-input').value.trim() || 'https://www.google.com/logos/2010/pacman10-i.html';
+    const save = document.getElementById('save-game-cb');
+    if (save.checked) { addCart(url); save.checked = false; }
+    document.getElementById('game-iframe').src = url;
+    localStorage.setItem('vb_url_v2', url);
+    toggleSettings();
+    setTimeout(triggerConnection, 1000);
+    setTimeout(applyViewMode, 100);
+}
+
+// ════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════
+window.onload = () => {
+    updateModeButtons(); updateARButtons(); updateSpeedFixBtn();
+    if (speedFixEnabled) startStayAlive();
+
+    const lastUrl = localStorage.getItem('vb_url_v2');
+    if (lastUrl) {
+        document.getElementById('game-iframe').src  = lastUrl;
+        document.getElementById('url-input').value  = lastUrl;
+    }
+    setTimeout(applyViewMode, 150);
+
+    const init = () => {
+        triggerConnection();
+        document.body.removeEventListener('touchstart', init);
+        document.body.removeEventListener('mousedown',  init);
+    };
+    document.body.addEventListener('touchstart', init);
+    document.body.addEventListener('mousedown',  init);
+};
+</script>
 </body>
 </html>
