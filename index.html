@@ -45,66 +45,36 @@
             display: flex; justify-content: space-between;
             align-items: center; width: 100%; margin-top: 8px;
         }
-        /* WASD Button Pad */
-        .wasd-wrapper {
-            display: grid;
-            grid-template-columns: repeat(3, 38px);
-            grid-template-rows: repeat(3, 38px);
-            gap: 5px;
-            flex-shrink: 0;
-        }
-        .wasd-btn {
-            width: 38px; height: 38px;
-            background: #2a2a2c;
-            border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            color: #d4d4d8; font-weight: 800; font-size: 0.8rem;
-            box-shadow: 0 3px 0 #000, inset 0 1px 0 rgba(255,255,255,0.06);
-            border: 1px solid #3f3f46;
-            touch-action: none; cursor: pointer;
-            letter-spacing: -0.02em;
-            transition: filter 0.05s;
-        }
-        .wasd-btn.wasd-cardinal {
-            background: #333336;
-            color: #e4e4e7;
-            font-size: 0.85rem;
-        }
-        .wasd-btn.wasd-corner {
-            background: #222224;
-            color: #71717a;
-            font-size: 0.6rem;
-            font-weight: 700;
-            border-radius: 6px;
-            letter-spacing: -0.03em;
-        }
-        .wasd-btn.wasd-center {
-            background: transparent;
-            border: none;
-            box-shadow: none;
-            pointer-events: none;
-        }
-        .wasd-btn.active {
-            transform: translateY(2px);
-            box-shadow: 0 1px 0 #000, inset 0 1px 0 rgba(255,255,255,0.04);
-            filter: brightness(1.5);
-        }
-        /* Double button */
-        .double-btn {
-            width: 34px; height: 56px;
-            background: #1a1a1c; border-radius: 17px;
-            border: 1px solid #3a3a3c;
-            color: #6b6b70; font-size: 0.58rem; font-weight: 800;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center; gap: 1px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
+        /* Joystick */
+        .joystick-base {
+            position: relative; width: 128px; height: 128px;
+            background: radial-gradient(circle at 38% 32%, #1e1e20, #0d0d0f);
+            border-radius: 50%;
+            box-shadow: inset 0 3px 12px rgba(0,0,0,0.9), inset 0 -1px 3px rgba(255,255,255,0.03), 0 2px 8px rgba(0,0,0,0.6);
             touch-action: none; flex-shrink: 0; cursor: pointer;
         }
-        .double-btn .dbl-x { font-size: 0.8rem; line-height: 1; }
-        .double-btn.active {
-            background: #92400e; color: #fcd34d;
-            border-color: #d97706;
-            box-shadow: 0 0 10px rgba(245,158,11,0.35), 0 2px 6px rgba(0,0,0,0.5);
+        /* Subtle ring when active */
+        .joystick-base::after {
+            content: ''; position: absolute; inset: 6px; border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0); transition: border-color 0.1s;
+        }
+        .joystick-base.active::after { border-color: rgba(255,255,255,0.08); }
+        /* Guide cross — faint lines to indicate 8 directions */
+        .joystick-guide {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%; height: 80%;
+            pointer-events: none; opacity: 0.06;
+        }
+        .joystick-nub {
+            position: absolute; width: 52px; height: 52px;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle at 36% 30%, #5a5a5e, #212124);
+            border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.07) inset;
+            pointer-events: none;
+            /* No transition — nub follows finger in real time */
         }
         /* Action buttons */
         .action-cluster {
@@ -287,9 +257,10 @@
         <div class="tab-panel active" id="tab-settings">
             <label class="field-label">Game URL</label>
             <input class="text-input" type="text" id="url-input" placeholder="Paste game URL here…">
-            <div class="save-row">
-                <input type="checkbox" id="save-game-cb">
-                <label for="save-game-cb">Save this game to My Games</label>
+            <div style="display:flex;gap:6px;margin-bottom:14px;margin-top:-6px">
+                <button class="toggle-btn" style="flex:0 0 auto;padding:7px 14px;background:#16a34a;color:white" onclick="saveUrlToLibrary()">
+                    <i class="fas fa-bookmark" style="margin-right:5px"></i>Save to My Games
+                </button>
             </div>
 
             <label class="field-label">View Mode</label>
@@ -384,26 +355,15 @@
         </div>
 
         <div class="main-controls">
-            <!-- WASD diamond pad -->
-            <div class="wasd-wrapper">
-                <!-- Row 1 -->
-                <div class="wasd-btn wasd-corner" data-keys="ArrowUp,w,ArrowLeft,a">↖</div>
-                <div class="wasd-btn wasd-cardinal" data-keys="ArrowUp,w">W</div>
-                <div class="wasd-btn wasd-corner" data-keys="ArrowUp,w,ArrowRight,d">↗</div>
-                <!-- Row 2 -->
-                <div class="wasd-btn wasd-cardinal" data-keys="ArrowLeft,a">A</div>
-                <div class="wasd-btn wasd-center"></div>
-                <div class="wasd-btn wasd-cardinal" data-keys="ArrowRight,d">D</div>
-                <!-- Row 3 -->
-                <div class="wasd-btn wasd-corner" data-keys="ArrowDown,s,ArrowLeft,a">↙</div>
-                <div class="wasd-btn wasd-cardinal" data-keys="ArrowDown,s">S</div>
-                <div class="wasd-btn wasd-corner" data-keys="ArrowDown,s,ArrowRight,d">↘</div>
-            </div>
-
-            <!-- Double button -->
-            <div class="double-btn" id="double-btn">
-                <span class="dbl-x">×2</span>
-                <span style="font-size:0.48rem;opacity:0.6;letter-spacing:0.04em">DBL</span>
+            <!-- Joystick -->
+            <div class="joystick-base" id="joystick-base">
+                <svg class="joystick-guide" viewBox="0 0 100 100" fill="none" stroke="white" stroke-width="1">
+                    <line x1="50" y1="0"  x2="50"  y2="100"/>
+                    <line x1="0"  y1="50" x2="100" y2="50"/>
+                    <line x1="15" y1="15" x2="85"  y2="85"/>
+                    <line x1="85" y1="15" x2="15"  y2="85"/>
+                </svg>
+                <div class="joystick-nub" id="joystick-nub"></div>
             </div>
 
             <!-- YXAB cluster -->
@@ -526,22 +486,114 @@ function updateARButtons() {
 window.addEventListener('resize', applyViewMode);
 
 // ════════════════════════════════════════════════
-// DOUBLE BUTTON
+// JOYSTICK — analog tracking, 8-directional output
+// Sends WASD/arrow keys + updates virtual gamepad
 // ════════════════════════════════════════════════
-const doubleBtn = document.getElementById('double-btn');
-function setDoubleMode(on) { doubleModeActive = on; doubleBtn.classList.toggle('active', on); }
-doubleBtn.addEventListener('touchstart', e => { e.preventDefault(); setDoubleMode(true); }, { passive: false });
-['touchend','touchcancel'].forEach(ev => doubleBtn.addEventListener(ev, e => { e.preventDefault(); setDoubleMode(false); }, { passive: false }));
-doubleBtn.addEventListener('mousedown', e => {
-    e.preventDefault(); setDoubleMode(true);
-    const mu = () => { setDoubleMode(false); window.removeEventListener('mouseup', mu); };
-    window.addEventListener('mouseup', mu);
+const joystickBase = document.getElementById('joystick-base');
+const joystickNub  = document.getElementById('joystick-nub');
+const STICK_MAX    = 46; // px — max nub travel from center
+const STICK_DEAD   = 12; // px — deadzone radius
+
+const STICK_MAP = {
+    up:    { gpBtn: 12, keys: ['ArrowUp',    'w'] },
+    down:  { gpBtn: 13, keys: ['ArrowDown',  's'] },
+    left:  { gpBtn: 14, keys: ['ArrowLeft',  'a'] },
+    right: { gpBtn: 15, keys: ['ArrowRight', 'd'] },
+};
+
+let stickTouchId = null;
+const activeDirs  = new Set();
+
+function stickDirs(dx, dy) {
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist < STICK_DEAD) return new Set();
+    const deg = ((Math.atan2(dy, dx) * 180 / Math.PI) + 360) % 360;
+    const s = new Set();
+    if      (deg >= 337.5 || deg < 22.5)  s.add('right');
+    else if (deg < 67.5)                  { s.add('right'); s.add('down'); }
+    else if (deg < 112.5)                 s.add('down');
+    else if (deg < 157.5)                 { s.add('down'); s.add('left'); }
+    else if (deg < 202.5)                 s.add('left');
+    else if (deg < 247.5)                 { s.add('left'); s.add('up'); }
+    else if (deg < 292.5)                 s.add('up');
+    else                                  { s.add('up'); s.add('right'); }
+    return s;
+}
+
+function applyStick(want) {
+    for (const dir of want) {
+        if (!activeDirs.has(dir)) {
+            const m = STICK_MAP[dir];
+            m.keys.forEach(k => sendKey(k, 'keydown'));
+            virtualGamepad.buttons[m.gpBtn].pressed = true;
+            virtualGamepad.buttons[m.gpBtn].value   = 1;
+            activeDirs.add(dir);
+        }
+    }
+    for (const dir of [...activeDirs]) {
+        if (!want.has(dir)) {
+            const m = STICK_MAP[dir];
+            m.keys.forEach(k => sendKey(k, 'keyup'));
+            virtualGamepad.buttons[m.gpBtn].pressed = false;
+            virtualGamepad.buttons[m.gpBtn].value   = 0;
+            activeDirs.delete(dir);
+        }
+    }
+    // Update analog axes
+    virtualGamepad.axes[0] = want.has('right') ? 1 : want.has('left') ? -1 : 0;
+    virtualGamepad.axes[1] = want.has('down')  ? 1 : want.has('up')   ? -1 : 0;
+    virtualGamepad.timestamp = performance.now();
+    try { document.getElementById('game-iframe').contentWindow.focus(); } catch(e) {}
+}
+
+function moveStick(cx, cy) {
+    const r   = joystickBase.getBoundingClientRect();
+    const dx  = cx - (r.left + r.width  / 2);
+    const dy  = cy - (r.top  + r.height / 2);
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    // Clamp nub position
+    const clamp = Math.min(dist, STICK_MAX);
+    const angle = Math.atan2(dy, dx);
+    const nx = dist > 0 ? Math.cos(angle) * clamp : 0;
+    const ny = dist > 0 ? Math.sin(angle) * clamp : 0;
+    joystickNub.style.transform = `translate(calc(-50% + ${nx.toFixed(1)}px), calc(-50% + ${ny.toFixed(1)}px))`;
+    applyStick(stickDirs(dx, dy));
+}
+
+function releaseStick() {
+    joystickNub.style.transform = 'translate(-50%, -50%)';
+    joystickBase.classList.remove('active');
+    applyStick(new Set());
+    stickTouchId = null;
+}
+
+joystickBase.addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (stickTouchId === null) {
+        stickTouchId = e.changedTouches[0].identifier;
+        joystickBase.classList.add('active');
+        moveStick(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+    }
+}, { passive: false });
+joystickBase.addEventListener('touchmove', e => {
+    e.preventDefault();
+    for (const t of e.changedTouches) if (t.identifier === stickTouchId) { moveStick(t.clientX, t.clientY); break; }
+}, { passive: false });
+['touchend','touchcancel'].forEach(ev => joystickBase.addEventListener(ev, e => {
+    e.preventDefault();
+    for (const t of e.changedTouches) if (t.identifier === stickTouchId) { releaseStick(); break; }
+}, { passive: false }));
+joystickBase.addEventListener('mousedown', e => {
+    e.preventDefault(); joystickBase.classList.add('active'); moveStick(e.clientX, e.clientY);
+    const mm = e => moveStick(e.clientX, e.clientY);
+    const mu = () => { releaseStick(); window.removeEventListener('mousemove', mm); window.removeEventListener('mouseup', mu); };
+    window.addEventListener('mousemove', mm); window.addEventListener('mouseup', mu);
 });
 
-let doubleModeActive = false;
+let doubleModeActive = false; // kept for handleBtnInput compatibility
 
 // ════════════════════════════════════════════════
-// ACTION BUTTONS — per-touch-ID (fixes YXAB)
+// ACTION BUTTONS — per-touch-ID
 // ════════════════════════════════════════════════
 function handleBtnInput(el, pressed) {
     const bidx  = el.getAttribute('data-btn');
@@ -590,7 +642,7 @@ function wireButton(btn) {
     });
 }
 
-document.querySelectorAll('.btn, .shoulder-btn, .menu-btn, .wasd-btn:not(.wasd-center)').forEach(wireButton);
+document.querySelectorAll('.btn, .shoulder-btn, .menu-btn').forEach(wireButton);
 
 // ════════════════════════════════════════════════
 // CARTRIDGE LIBRARY
@@ -717,10 +769,20 @@ function showTab(tab) {
     if (tab==='library') renderLibrary();
 }
 
+function saveUrlToLibrary() {
+    const url = document.getElementById('url-input').value.trim();
+    if (!url) return;
+    addCart(url);
+    // Brief visual confirmation on the button
+    const btn = event.currentTarget;
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-check" style="margin-right:5px"></i>Saved!';
+    btn.style.background = '#15803d';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.background = '#16a34a'; }, 1200);
+}
+
 function saveSettings() {
-    const url  = document.getElementById('url-input').value.trim() || 'https://www.google.com/logos/2010/pacman10-i.html';
-    const save = document.getElementById('save-game-cb');
-    if (save.checked) { addCart(url); save.checked = false; }
+    const url = document.getElementById('url-input').value.trim() || 'https://www.google.com/logos/2010/pacman10-i.html';
     document.getElementById('game-iframe').src = url;
     localStorage.setItem('vb_url_v2', url);
     toggleSettings();
