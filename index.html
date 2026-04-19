@@ -45,36 +45,17 @@
             display: flex; justify-content: space-between;
             align-items: center; width: 100%; margin-top: 8px;
         }
-        /* Joystick */
-        .joystick-base {
-            position: relative; width: 128px; height: 128px;
-            background: radial-gradient(circle at 38% 32%, #1e1e20, #0d0d0f);
-            border-radius: 50%;
-            box-shadow: inset 0 3px 12px rgba(0,0,0,0.9), inset 0 -1px 3px rgba(255,255,255,0.03), 0 2px 8px rgba(0,0,0,0.6);
-            touch-action: none; flex-shrink: 0; cursor: pointer;
+        /* Xbox-style 8-tile D-Pad */
+        .dpad-container {
+            position: relative; width: 130px; height: 130px;
+            flex-shrink: 0; touch-action: none; cursor: pointer;
         }
-        /* Subtle ring when active */
-        .joystick-base::after {
-            content: ''; position: absolute; inset: 6px; border-radius: 50%;
-            border: 1px solid rgba(255,255,255,0); transition: border-color 0.1s;
+        .dpad-svg { display: block; overflow: visible; }
+        .dpad-seg {
+            transition: filter 0.04s;
         }
-        .joystick-base.active::after { border-color: rgba(255,255,255,0.08); }
-        /* Guide cross — faint lines to indicate 8 directions */
-        .joystick-guide {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 80%; height: 80%;
-            pointer-events: none; opacity: 0.06;
-        }
-        .joystick-nub {
-            position: absolute; width: 52px; height: 52px;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background: radial-gradient(circle at 36% 30%, #5a5a5e, #212124);
-            border-radius: 50%;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.07) inset;
-            pointer-events: none;
-            /* No transition — nub follows finger in real time */
+        .dpad-seg.lit {
+            filter: brightness(2.1) drop-shadow(0 0 4px rgba(255,255,255,0.15));
         }
         /* Action buttons */
         .action-cluster {
@@ -355,15 +336,60 @@
         </div>
 
         <div class="main-controls">
-            <!-- Joystick -->
-            <div class="joystick-base" id="joystick-base">
-                <svg class="joystick-guide" viewBox="0 0 100 100" fill="none" stroke="white" stroke-width="1">
-                    <line x1="50" y1="0"  x2="50"  y2="100"/>
-                    <line x1="0"  y1="50" x2="100" y2="50"/>
-                    <line x1="15" y1="15" x2="85"  y2="85"/>
-                    <line x1="85" y1="15" x2="15"  y2="85"/>
-                </svg>
-                <div class="joystick-nub" id="joystick-nub"></div>
+            <!-- Xbox-style 8-tile D-Pad -->
+            <div class="dpad-container" id="dpad-container">
+              <svg class="dpad-svg" viewBox="0 0 130 130" width="130" height="130" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <clipPath id="dp-clip"><circle cx="65" cy="65" r="61"/></clipPath>
+                  <!-- Tile gradients: top-left bright → bottom-right dark = bevel illusion -->
+                  <linearGradient id="g-norm" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%"   stop-color="#3c3c3e"/>
+                    <stop offset="100%" stop-color="#252527"/>
+                  </linearGradient>
+                  <linearGradient id="g-corner" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%"   stop-color="#343436"/>
+                    <stop offset="100%" stop-color="#202022"/>
+                  </linearGradient>
+                  <!-- Top-edge bevel highlight overlay -->
+                  <linearGradient id="g-bevel" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%"   stop-color="rgba(255,255,255,0.09)"/>
+                    <stop offset="40%"  stop-color="rgba(255,255,255,0)"/>
+                  </linearGradient>
+                </defs>
+
+                <!-- Outer bezel ring -->
+                <circle cx="65" cy="65" r="65" fill="#090909"/>
+                <circle cx="65" cy="65" r="61" fill="#161618"/>
+
+                <!-- 8 tiles, clipped to circle -->
+                <g clip-path="url(#dp-clip)">
+                  <!-- Corners -->
+                  <rect id="seg-ul" class="dpad-seg" x="3"  y="3"  width="41" height="41" rx="5" fill="url(#g-corner)"/>
+                  <rect id="seg-ur" class="dpad-seg" x="86" y="3"  width="41" height="41" rx="5" fill="url(#g-corner)"/>
+                  <rect id="seg-dl" class="dpad-seg" x="3"  y="86" width="41" height="41" rx="5" fill="url(#g-corner)"/>
+                  <rect id="seg-dr" class="dpad-seg" x="86" y="86" width="41" height="41" rx="5" fill="url(#g-corner)"/>
+                  <!-- Cardinals -->
+                  <rect id="seg-u"  class="dpad-seg" x="47" y="3"  width="36" height="41" rx="3" fill="url(#g-norm)"/>
+                  <rect id="seg-d"  class="dpad-seg" x="47" y="86" width="36" height="41" rx="3" fill="url(#g-norm)"/>
+                  <rect id="seg-l"  class="dpad-seg" x="3"  y="47" width="41" height="36" rx="3" fill="url(#g-norm)"/>
+                  <rect id="seg-r"  class="dpad-seg" x="86" y="47" width="41" height="36" rx="3" fill="url(#g-norm)"/>
+                  <!-- Bevel highlight overlay on every tile -->
+                  <rect x="3"  y="3"  width="41" height="41" rx="5" fill="url(#g-bevel)" pointer-events="none"/>
+                  <rect x="86" y="3"  width="41" height="41" rx="5" fill="url(#g-bevel)" pointer-events="none"/>
+                  <rect x="3"  y="86" width="41" height="41" rx="5" fill="url(#g-bevel)" pointer-events="none"/>
+                  <rect x="86" y="86" width="41" height="41" rx="5" fill="url(#g-bevel)" pointer-events="none"/>
+                  <rect x="47" y="3"  width="36" height="41" rx="3" fill="url(#g-bevel)" pointer-events="none"/>
+                  <rect x="47" y="86" width="36" height="41" rx="3" fill="url(#g-bevel)" pointer-events="none"/>
+                  <rect x="3"  y="47" width="41" height="36" rx="3" fill="url(#g-bevel)" pointer-events="none"/>
+                  <rect x="86" y="47" width="41" height="36" rx="3" fill="url(#g-bevel)" pointer-events="none"/>
+                </g>
+
+                <!-- Inner ring shadow over tiles -->
+                <circle cx="65" cy="65" r="61" fill="none" stroke="#090909" stroke-width="3"/>
+                <!-- Center cap -->
+                <circle cx="65" cy="65" r="11" fill="#1a1a1c"/>
+                <circle cx="65" cy="65" r="9"  fill="radial-gradient(circle at 40% 35%, #252527, #111113)" opacity="0.9"/>
+              </svg>
             </div>
 
             <!-- YXAB cluster -->
@@ -486,27 +512,23 @@ function updateARButtons() {
 window.addEventListener('resize', applyViewMode);
 
 // ════════════════════════════════════════════════
-// JOYSTICK — analog tracking, 8-directional output
-// Sends WASD/arrow keys + updates virtual gamepad
+// D-PAD — joystick-style tracking, 8-tile visual
+// Sends WASD/arrow keys + virtual gamepad buttons
 // ════════════════════════════════════════════════
-const joystickBase = document.getElementById('joystick-base');
-const joystickNub  = document.getElementById('joystick-nub');
-const STICK_MAX    = 46; // px — max nub travel from center
-const STICK_DEAD   = 12; // px — deadzone radius
+const dpadContainer = document.getElementById('dpad-container');
 
-const STICK_MAP = {
+const DPAD_MAP = {
     up:    { gpBtn: 12, keys: ['ArrowUp',    'w'] },
     down:  { gpBtn: 13, keys: ['ArrowDown',  's'] },
     left:  { gpBtn: 14, keys: ['ArrowLeft',  'a'] },
     right: { gpBtn: 15, keys: ['ArrowRight', 'd'] },
 };
 
-let stickTouchId = null;
-const activeDirs  = new Set();
+let dpadTouchId = null;
+const activeDirs = new Set();
 
-function stickDirs(dx, dy) {
-    const dist = Math.sqrt(dx*dx + dy*dy);
-    if (dist < STICK_DEAD) return new Set();
+function dpadDirs(dx, dy) {
+    if (Math.sqrt(dx*dx + dy*dy) < 12) return new Set();
     const deg = ((Math.atan2(dy, dx) * 180 / Math.PI) + 360) % 360;
     const s = new Set();
     if      (deg >= 337.5 || deg < 22.5)  s.add('right');
@@ -520,10 +542,23 @@ function stickDirs(dx, dy) {
     return s;
 }
 
-function applyStick(want) {
+function updateDpadVisual(dirs) {
+    const up = dirs.has('up'), down = dirs.has('down');
+    const left = dirs.has('left'), right = dirs.has('right');
+    document.getElementById('seg-u').classList.toggle('lit', up);
+    document.getElementById('seg-d').classList.toggle('lit', down);
+    document.getElementById('seg-l').classList.toggle('lit', left);
+    document.getElementById('seg-r').classList.toggle('lit', right);
+    document.getElementById('seg-ul').classList.toggle('lit', up && left);
+    document.getElementById('seg-ur').classList.toggle('lit', up && right);
+    document.getElementById('seg-dl').classList.toggle('lit', down && left);
+    document.getElementById('seg-dr').classList.toggle('lit', down && right);
+}
+
+function applyDpad(want) {
     for (const dir of want) {
         if (!activeDirs.has(dir)) {
-            const m = STICK_MAP[dir];
+            const m = DPAD_MAP[dir];
             m.keys.forEach(k => sendKey(k, 'keydown'));
             virtualGamepad.buttons[m.gpBtn].pressed = true;
             virtualGamepad.buttons[m.gpBtn].value   = 1;
@@ -532,61 +567,48 @@ function applyStick(want) {
     }
     for (const dir of [...activeDirs]) {
         if (!want.has(dir)) {
-            const m = STICK_MAP[dir];
+            const m = DPAD_MAP[dir];
             m.keys.forEach(k => sendKey(k, 'keyup'));
             virtualGamepad.buttons[m.gpBtn].pressed = false;
             virtualGamepad.buttons[m.gpBtn].value   = 0;
             activeDirs.delete(dir);
         }
     }
-    // Update analog axes
     virtualGamepad.axes[0] = want.has('right') ? 1 : want.has('left') ? -1 : 0;
     virtualGamepad.axes[1] = want.has('down')  ? 1 : want.has('up')   ? -1 : 0;
     virtualGamepad.timestamp = performance.now();
+    updateDpadVisual(activeDirs);
     try { document.getElementById('game-iframe').contentWindow.focus(); } catch(e) {}
 }
 
-function moveStick(cx, cy) {
-    const r   = joystickBase.getBoundingClientRect();
-    const dx  = cx - (r.left + r.width  / 2);
-    const dy  = cy - (r.top  + r.height / 2);
-    const dist = Math.sqrt(dx*dx + dy*dy);
-    // Clamp nub position
-    const clamp = Math.min(dist, STICK_MAX);
-    const angle = Math.atan2(dy, dx);
-    const nx = dist > 0 ? Math.cos(angle) * clamp : 0;
-    const ny = dist > 0 ? Math.sin(angle) * clamp : 0;
-    joystickNub.style.transform = `translate(calc(-50% + ${nx.toFixed(1)}px), calc(-50% + ${ny.toFixed(1)}px))`;
-    applyStick(stickDirs(dx, dy));
+function moveDpad(cx, cy) {
+    const r  = dpadContainer.getBoundingClientRect();
+    const dx = cx - (r.left + r.width  / 2);
+    const dy = cy - (r.top  + r.height / 2);
+    applyDpad(dpadDirs(dx, dy));
 }
 
-function releaseStick() {
-    joystickNub.style.transform = 'translate(-50%, -50%)';
-    joystickBase.classList.remove('active');
-    applyStick(new Set());
-    stickTouchId = null;
+function releaseDpad() {
+    applyDpad(new Set());
+    dpadTouchId = null;
 }
 
-joystickBase.addEventListener('touchstart', e => {
+dpadContainer.addEventListener('touchstart', e => {
     e.preventDefault();
-    if (stickTouchId === null) {
-        stickTouchId = e.changedTouches[0].identifier;
-        joystickBase.classList.add('active');
-        moveStick(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
-    }
+    if (dpadTouchId === null) { dpadTouchId = e.changedTouches[0].identifier; moveDpad(e.changedTouches[0].clientX, e.changedTouches[0].clientY); }
 }, { passive: false });
-joystickBase.addEventListener('touchmove', e => {
+dpadContainer.addEventListener('touchmove', e => {
     e.preventDefault();
-    for (const t of e.changedTouches) if (t.identifier === stickTouchId) { moveStick(t.clientX, t.clientY); break; }
+    for (const t of e.changedTouches) if (t.identifier === dpadTouchId) { moveDpad(t.clientX, t.clientY); break; }
 }, { passive: false });
-['touchend','touchcancel'].forEach(ev => joystickBase.addEventListener(ev, e => {
+['touchend','touchcancel'].forEach(ev => dpadContainer.addEventListener(ev, e => {
     e.preventDefault();
-    for (const t of e.changedTouches) if (t.identifier === stickTouchId) { releaseStick(); break; }
+    for (const t of e.changedTouches) if (t.identifier === dpadTouchId) { releaseDpad(); break; }
 }, { passive: false }));
-joystickBase.addEventListener('mousedown', e => {
-    e.preventDefault(); joystickBase.classList.add('active'); moveStick(e.clientX, e.clientY);
-    const mm = e => moveStick(e.clientX, e.clientY);
-    const mu = () => { releaseStick(); window.removeEventListener('mousemove', mm); window.removeEventListener('mouseup', mu); };
+dpadContainer.addEventListener('mousedown', e => {
+    e.preventDefault(); moveDpad(e.clientX, e.clientY);
+    const mm = e => moveDpad(e.clientX, e.clientY);
+    const mu = () => { releaseDpad(); window.removeEventListener('mousemove', mm); window.removeEventListener('mouseup', mu); };
     window.addEventListener('mousemove', mm); window.addEventListener('mouseup', mu);
 });
 
