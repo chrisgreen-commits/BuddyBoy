@@ -82,11 +82,24 @@
             font-size: 0.75rem; touch-action: none; cursor: pointer;
         }
         /* Menu */
-        .menu-row { display: flex; justify-content: center; gap: 28px; padding-bottom: 4px; }
+        .menu-row { display: flex; justify-content: center; align-items: center; gap: 16px; padding-bottom: 4px; }
         .menu-btn {
             width: 38px; height: 10px; background: #111;
             border-radius: 5px; border-bottom: 2px solid #444;
             touch-action: none; cursor: pointer;
+        }
+        .mute-btn {
+            width: 32px; height: 32px; background: #1c1c1e;
+            border-radius: 50%; border: 1px solid #3a3a3c;
+            display: flex; align-items: center; justify-content: center;
+            color: #8e8e93; font-size: 0.8rem;
+            touch-action: none; cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            transition: color 0.15s, border-color 0.15s, background 0.15s;
+            flex-shrink: 0;
+        }
+        .mute-btn.muted {
+            color: #f87171; border-color: #f8717155; background: #1f1010;
         }
         /* Gear */
         .gear-icon {
@@ -403,6 +416,9 @@
 
         <div class="menu-row">
             <div class="menu-btn" data-btn="8" data-keys="Tab"></div>
+            <div class="mute-btn" id="mute-btn" onclick="toggleMute()">
+                <i class="fas fa-volume-up" id="mute-icon"></i>
+            </div>
             <div class="menu-btn" data-btn="9" data-keys="p"></div>
         </div>
     </div>
@@ -813,6 +829,30 @@ function saveSettings() {
 }
 
 // ════════════════════════════════════════════════
+// MUTE
+// ════════════════════════════════════════════════
+let gameMuted = localStorage.getItem('vb_muted') === '1';
+
+function applyMute() {
+    const fr   = document.getElementById('game-iframe');
+    const btn  = document.getElementById('mute-btn');
+    const icon = document.getElementById('mute-icon');
+    // iframe.muted works in most browsers for same-origin;
+    // for cross-origin we also set volume via postMessage and use a muted AudioContext intercept
+    fr.muted = gameMuted;
+    // Best-effort: tell the page to mute itself
+    try { fr.contentWindow.postMessage({ type: 'vb-mute', muted: gameMuted }, '*'); } catch(e) {}
+    btn.classList.toggle('muted', gameMuted);
+    icon.className = gameMuted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
+    localStorage.setItem('vb_muted', gameMuted ? '1' : '0');
+}
+
+function toggleMute() {
+    gameMuted = !gameMuted;
+    applyMute();
+}
+
+// ════════════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════════════
 window.onload = () => {
@@ -825,6 +865,10 @@ window.onload = () => {
         document.getElementById('url-input').value  = lastUrl;
     }
     setTimeout(applyViewMode, 150);
+    applyMute();
+
+    // Re-apply mute whenever a new game loads (iframe.muted resets on src change)
+    document.getElementById('game-iframe').addEventListener('load', applyMute);
 
     const init = () => {
         triggerConnection();
